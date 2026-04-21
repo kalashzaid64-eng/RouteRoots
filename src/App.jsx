@@ -485,7 +485,6 @@ function App() {
                   </button>
                   <button
                     className="button rr-btn-green is-fullwidth"
-                    style={{ borderRadius: '12px' }}
                     disabled={!createClubForm.name.trim() || !createClubForm.description.trim()}
                     onClick={() => {
                       const nextId = clubsData.reduce((max, c) => Math.max(max, c.id ?? 0), 0) + 1;
@@ -507,7 +506,10 @@ function App() {
                       setClubsTab('my');
                       setSelectedClub(newClub);
                     }}
-                    style={!createClubForm.name.trim() || !createClubForm.description.trim() ? { opacity: 0.6 } : {}}
+                    style={{
+                      borderRadius: '12px',
+                      ...(!createClubForm.name.trim() || !createClubForm.description.trim() ? { opacity: 0.6 } : {})
+                    }}
                   >
                     Create Club
                   </button>
