@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import 'bulma/css/bulma.min.css';
 import './index.css';
 import Layout from './components/Layout';
@@ -7,6 +7,11 @@ import { ProfileHeader, ProfileStats, AchievementsSection, RecentActivitySection
 import { ClubsHeader, ClubCard } from './components/ClubsComponents';
 import { MarketHeader, MarketBanner, ProductCard } from './components/MarketComponents';
 import { AccountSettings, NotificationSettings, PreferencesSettings, SecuritySettings, SupportSettings } from './components/SettingsComponents';
+import Login from './components/Login';
+import Register from './components/Register';
+import api from './api/axios';
+
+
 
 const MOCK_RIDES = [
   {
@@ -217,15 +222,37 @@ const MOCK_PRODUCTS = [
 ];
 
 function App() {
+  const [authPage, setAuthPage] = useState('login');
+
   const [currentTab, setCurrentTab] = useState('home');
   const [marketCategory, setMarketCategory] = useState('all');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState({
-    name: 'John Doe',
-    location: 'San Francisco, CA',
-    bio: 'Passionate runner, cyclist, and skater. Love exploring new trails and connecting with fellow athletes. Member since 2024. 🌱',
-    activities: ['Running', 'Cycling', 'Skating']
+    name: '',
+    location: '',
+    bio: '',
+    activities: []
   });
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await api.get('/me');
+        const data = response.data;
+        setUser({
+          name: data.name ?? '',
+          location: data.location ?? '',
+          bio: data.bio ?? '',
+          activities: []
+        });
+      } catch (err) {}
+    };
+  
+    if (isAuthenticated) {
+      fetchUser();
+    }
+  }, [isAuthenticated]);
+  
 
   const [rideTypeFilter, setRideTypeFilter] = useState('all');
   const [clubTypeFilter, setClubTypeFilter] = useState('all');
@@ -313,7 +340,7 @@ function App() {
 
   return (
     <Layout currentTab={currentTab} setCurrentTab={setCurrentTab} hideBottomNav={!isAuthenticated}>
-      {!isAuthenticated && (
+      {/* {!isAuthenticated && (
         <div className="container px-4" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
           <div className="rr-card" style={{ maxWidth: '520px', margin: '0 auto' }}>
             <h1 className="title is-4 mb-2" style={{ fontWeight: 800 }}>Welcome to RouteRoots</h1>
@@ -384,7 +411,22 @@ function App() {
             </button>
           </div>
         </div>
-      )}
+      )} */
+    !isAuthenticated && (
+  authPage === 'login' ? (
+    <Login onLogin={(token) => {
+      setIsAuthenticated(true);
+      setCurrentTab('home');
+    }} onGoToRegister={() => setAuthPage('register')} />
+  ) : (
+    <Register onRegister={(token) => {
+      setIsAuthenticated(true);
+      setCurrentTab('home');
+    }} onGoToLogin={() => setAuthPage('login')} />
+  )
+)}
+
+
 
       {isAuthenticated && currentTab === 'home' && (
         <>
@@ -581,19 +623,24 @@ function App() {
           <NotificationSettings />
           <PreferencesSettings />
           <SecuritySettings />
-          <SupportSettings />
+          {/* <SupportSettings /> */}
+          <SupportSettings onLogout={async () => {
+  try {
+    await api.post('/logout');
+  } catch (err) {}
+  localStorage.removeItem('token');
+  setIsAuthenticated(false);
+  setCurrentTab('home');
+}} />
+
 
           <div className="container px-4">
-            <button
+            {/* <button
               className="button is-fullwidth"
               style={{ borderRadius: '12px', fontWeight: 700, marginTop: '0.75rem' }}
-              onClick={() => {
-                setIsAuthenticated(false);
-                setCurrentTab('home');
-              }}
             >
               Sign Out
-            </button>
+            </button> */}
           </div>
         </div>
       )}
@@ -792,9 +839,20 @@ function App() {
         title="Edit Profile"
         onClose={() => setIsProfileEditOpen(false)}
         footer={
-          <button className="button rr-btn-green" onClick={() => setIsProfileEditOpen(false)}>
+          <button className="button rr-btn-green" onClick={async () => {
+            try {
+              await api.put('/profile', {
+                name: user.name,
+                bio: user.bio,
+                location: user.location,
+                activities: user.activities,
+              });
+              setIsProfileEditOpen(false);
+            } catch (err) {}
+          }}>
             Save
           </button>
+          
         }
       >
         <div className="mb-4">

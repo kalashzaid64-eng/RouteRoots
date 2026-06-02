@@ -532,6 +532,15 @@ input:checked + .slider:before {
   font-weight: 600;
   cursor: pointer;
   padding: 0.5rem 1.2rem;
+  box-shadow: 0 5px 0 #256b29;
+  transform: translateY(0px);
+  transition: all 0.1s ease;
+}
+
+/* ✅ لما تضغط */
+.rr-btn-green:active {
+  box-shadow: 0 0px 0 #256b29;
+  transform: translateY(5px);
 }
 
 .rr-pill {
@@ -547,7 +556,52 @@ input:checked + .slider:before {
   gap: 6px;
   white-space: nowrap;
   font-size: 0.9rem;
+
+    box-shadow: 0 4px 0 #d0d0d0;
+  transform: translateY(0px);
+  transition: all 0.1s ease;
 }
+.rr-pill:active {
+  box-shadow: 0 0px 0 #d0d0d0;
+  transform: translateY(4px);
+}
+.rr-pill.is-active-running {
+  background-color: var(--running-blue);
+  color: var(--white);
+  border-color: var(--running-blue);
+  box-shadow: 0 4px 0 #0081a0;  /* أغمق من الأزرق */
+}
+
+.rr-pill.is-active-running:active {
+  box-shadow: 0 0px 0 #0081a0;
+  transform: translateY(4px);
+}
+
+/* ✅ ضيف هدول الجديدين */
+.rr-pill.is-active-cycling {
+  background-color: var(--cycling-green);
+  color: var(--white);
+  border-color: var(--cycling-green);
+  box-shadow: 0 4px 0 #256b29;
+}
+
+.rr-pill.is-active-cycling:active {
+  box-shadow: 0 0px 0 #256b29;
+  transform: translateY(4px);
+}
+
+.rr-pill.is-active-skating {
+  background-color: var(--skating-orange);
+  color: var(--white);
+  border-color: var(--skating-orange);
+  box-shadow: 0 4px 0 #a85540;
+}
+
+.rr-pill.is-active-skating:active {
+  box-shadow: 0 0px 0 #a85540;
+  transform: translateY(4px);
+}
+/*modified end*/
 
 .rr-pill.is-active-running {
   background-color: var(--running-blue);

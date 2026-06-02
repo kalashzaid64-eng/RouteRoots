@@ -143,7 +143,7 @@ export const RideCard = ({ ride, onOpenDetails, onToggleJoin, isJoined = false }
               style={{ textDecoration: 'none', fontWeight: 600 }}
               onClick={() => onOpenDetails?.(ride)}
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' , margin:'5px' }}>
                 Details <ChevronRight size={18} />
               </span>
             </button>

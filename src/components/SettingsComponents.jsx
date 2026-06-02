@@ -116,7 +116,7 @@ export const SecuritySettings = () => (
   </div>
 );
 
-export const SupportSettings = () => (
+export const SupportSettings = ({onLogout}) => (
   <div className="container px-4">
     <div className="settings-section">
       <div className="is-flex is-align-items-center gap-3 mb-4">
@@ -139,7 +139,7 @@ export const SupportSettings = () => (
       </div>
     </div>
 
-    <button className="logout-btn mb-6">
+    <button className="logout-btn mb-6" onClick={onLogout}>
       <LogOut size={20} /> Log Out
     </button>
   </div>
