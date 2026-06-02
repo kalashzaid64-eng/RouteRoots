@@ -226,6 +226,7 @@ function App() {
 
   const [currentTab, setCurrentTab] = useState('home');
   const [marketCategory, setMarketCategory] = useState('all');
+  const [products, setProducts] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState({
     name: '',
@@ -252,6 +253,34 @@ function App() {
       fetchUser();
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const response = await api.get('/products');
+      setProducts(response.data);
+    } catch (err) {}
+  };
+
+  if (isAuthenticated) {
+    fetchProducts();
+  }
+}, [isAuthenticated]);
+
+useEffect(() => {
+  const fetchClubs = async () => {
+    try {
+      const response = await api.get('/clubs');
+      setClubsData(response.data);
+    } catch (err) {}
+  };
+
+  if (isAuthenticated) {
+    fetchClubs();
+  }
+}, [isAuthenticated]);
+
+
   
 
   const [rideTypeFilter, setRideTypeFilter] = useState('all');
@@ -276,10 +305,11 @@ function App() {
   const [cartItems, setCartItems] = useState([]);
 
   const filteredProducts = useMemo(() => {
-    return marketCategory === 'all'
-      ? MOCK_PRODUCTS
-      : MOCK_PRODUCTS.filter((p) => p.category.toLowerCase() === marketCategory);
-  }, [marketCategory]);
+  return marketCategory === 'all'
+    ? products
+    : products.filter((p) => p.category.toLowerCase() === marketCategory);
+  }, [marketCategory, products]);
+
 
   const filteredRides = useMemo(() => {
     const rides = rideTypeFilter === 'all' ? MOCK_RIDES : MOCK_RIDES.filter((r) => r.type === rideTypeFilter);

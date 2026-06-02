@@ -16,9 +16,10 @@ class ProfileController extends Controller
             'bio' => 'sometimes|string',
             'location' => 'sometimes|string',
             'avatar' => 'sometimes|string',
+            'activitie' => 'sometimes|string',
         ]);
 
-        $user->update($request->only('name', 'bio', 'location', 'avatar'));
+        $user->update($request->only('name', 'bio', 'location', 'avatar','activitie'));
 
         return response()->json([
             'message' => 'Profile updated successfully',
