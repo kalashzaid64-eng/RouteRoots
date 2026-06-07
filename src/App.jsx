@@ -6,7 +6,7 @@ import { HeroBanner, RideFilters, RideCard } from './components/HomeComponents';
 import { ProfileHeader, ProfileStats, AchievementsSection, RecentActivitySection } from './components/ProfileComponents';
 import { ClubsHeader, ClubCard } from './components/ClubsComponents';
 import { MarketHeader, MarketBanner, ProductCard } from './components/MarketComponents';
-import { AccountSettings, NotificationSettings, PreferencesSettings, SecuritySettings, SupportSettings } from './components/SettingsComponents';
+import { NotificationSettings, PreferencesSettings, SecuritySettings, SupportSettings } from './components/SettingsComponents';
 import Login from './components/Login';
 import Register from './components/Register';
 import api from './api/axios';
@@ -223,7 +223,7 @@ const MOCK_PRODUCTS = [
 
 function App() {
   const [authPage, setAuthPage] = useState('login');
-
+  const [rides, setRides] = useState([]);
   const [currentTab, setCurrentTab] = useState('home');
   const [marketCategory, setMarketCategory] = useState('all');
   const [products, setProducts] = useState([]);
@@ -239,12 +239,14 @@ function App() {
     const fetchUser = async () => {
       try {
         const response = await api.get('/me');
-        const data = response.data;
+        const {data} = response;
         setUser({
           name: data.name ?? '',
+          email: data.email ?? '' ,
           location: data.location ?? '',
           bio: data.bio ?? '',
-          activities: []
+          activities: data.activities ? data.activities.split(',') : []
+
         });
       } catch (err) {}
     };
@@ -280,6 +282,18 @@ useEffect(() => {
   }
 }, [isAuthenticated]);
 
+useEffect(() => {
+  const fetchRides = async () => {
+    try {
+      const response = await api.get('/rides');
+      setRides(response.data);
+    } catch (err) {}
+  };
+
+  if (isAuthenticated) {
+    fetchRides();
+  }
+}, [isAuthenticated]);
 
   
 
@@ -312,33 +326,58 @@ useEffect(() => {
 
 
   const filteredRides = useMemo(() => {
-    const rides = rideTypeFilter === 'all' ? MOCK_RIDES : MOCK_RIDES.filter((r) => r.type === rideTypeFilter);
-    return rides;
-  }, [rideTypeFilter]);
+    return rideTypeFilter === 'all' ? rides : rides.filter((r) => r.activity_type === rideTypeFilter);
+  }, [rideTypeFilter, rides]);
+  
 
   const filteredClubs = useMemo(() => {
-    const clubs = clubTypeFilter === 'all' ? clubsData : clubsData.filter((c) => c.type === clubTypeFilter);
-    return clubs;
+    return clubTypeFilter === 'all' 
+      ? clubsData 
+      : clubsData.filter((c) => c.type?.toLowerCase() === clubTypeFilter.toLowerCase());
   }, [clubTypeFilter, clubsData]);
+  
 
   const myClubs = useMemo(() => {
     const joined = clubsData.filter((c) => joinedClubIds.includes(c.id));
-    return clubTypeFilter === 'all' ? joined : joined.filter((c) => c.type === clubTypeFilter);
+    return clubTypeFilter === 'all' ? joined : joined.filter((c) => c.type?.toLowerCase() === clubTypeFilter.toLowerCase());
   }, [clubTypeFilter, clubsData, joinedClubIds]);
+  
 
   const cartCount = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.qty, 0);
   }, [cartItems]);
 
-  const toggleJoinRide = (ride) => {
+  const toggleJoinRide = async (ride) => {
     if (!ride?.id) return;
-    setJoinedRideIds((prev) => (prev.includes(ride.id) ? prev.filter((id) => id !== ride.id) : [...prev, ride.id]));
+    try {
+      if (joinedRideIds.includes(ride.id)) {
+        await api.post(`/rides/${ride.id}/leave`);
+        setJoinedRideIds((prev) => prev.filter((id) => id !== ride.id));
+      } else {
+        await api.post(`/rides/${ride.id}/join`);
+        setJoinedRideIds((prev) => [...prev, ride.id]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
+  
 
-  const toggleJoinClub = (club) => {
+  const toggleJoinClub = async (club) => {
     if (!club?.id) return;
-    setJoinedClubIds((prev) => (prev.includes(club.id) ? prev.filter((id) => id !== club.id) : [...prev, club.id]));
+    try {
+      if (joinedClubIds.includes(club.id)) {
+        await api.post(`/clubs/${club.id}/leave`);
+        setJoinedClubIds((prev) => prev.filter((id) => id !== club.id));
+      } else {
+        await api.post(`/clubs/${club.id}/join`);
+        setJoinedClubIds((prev) => [...prev, club.id]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
+  
 
   const addToCart = (product) => {
     if (!product?.id) return;
@@ -476,7 +515,34 @@ useEffect(() => {
       
       {isAuthenticated && currentTab === 'profile' && (
         <>
-          <ProfileHeader user={user} selectedActivities={user.activities} onEditProfile={() => setIsProfileEditOpen(true)} />
+        <ProfileHeader 
+  user={user} 
+  selectedActivities={user.activities} 
+  onEditProfile={() => setIsProfileEditOpen(true)}
+  onAvatarChange={async (file) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('_method', 'PUT');
+    formData.append('avatar', file);
+    try {
+      await api.post('/profile', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      const meResponse = await api.get('/me');
+      setUser((prev) => ({ ...prev, avatar: meResponse.data.avatar }));
+    } catch (err) {
+      console.error(err);
+    }
+  }}
+  
+  
+  
+  
+/>
+
           <ProfileStats />
           <AchievementsSection />
           <RecentActivitySection />
@@ -558,26 +624,33 @@ useEffect(() => {
                   <button
                     className="button rr-btn-green is-fullwidth"
                     disabled={!createClubForm.name.trim() || !createClubForm.description.trim()}
-                    onClick={() => {
-                      const nextId = clubsData.reduce((max, c) => Math.max(max, c.id ?? 0), 0) + 1;
-                      const initial = createClubForm.name.trim()[0]?.toUpperCase() ?? 'C';
-                      const newClub = {
-                        id: nextId,
-                        type: createClubForm.type,
-                        initial,
-                        name: createClubForm.name.trim(),
-                        description: createClubForm.description.trim(),
-                        members: 1,
-                        rating: 5.0,
-                        location: createClubForm.location.trim() || user.location
-                      };
-
-                      setClubsData((prev) => [newClub, ...prev]);
-                      setJoinedClubIds((prev) => (prev.includes(newClub.id) ? prev : [...prev, newClub.id]));
-                      setCreateClubForm({ name: '', type: 'Running', description: '', location: '' });
-                      setClubsTab('my');
-                      setSelectedClub(newClub);
+                    onClick={async () => {
+                      try {
+                        const response = await api.post('/clubs', {
+                          name: createClubForm.name.trim(),
+                          activity_type: createClubForm.type.toLowerCase(),
+                          description: createClubForm.description.trim(),
+                          location: createClubForm.location.trim() || user.location
+                        });
+                    
+                        const newClub = {
+                          ...response.data,
+                          type: createClubForm.type,
+                          initial: createClubForm.name.trim()[0]?.toUpperCase() ?? 'C',
+                          members: 1,
+                          rating: 5.0,
+                          location: createClubForm.location.trim() || user.location,
+                        };
+                        
+                    
+                        setClubsData((prev) => [newClub, ...prev]);
+                        setJoinedClubIds((prev) => [...prev, newClub.id]);
+                        setCreateClubForm({ name: '', type: 'Running', description: '', location: '' });
+                        setClubsTab('my');
+                        setSelectedClub(newClub);
+                      } catch (err) {}
                     }}
+                    
                     style={{
                       borderRadius: '12px',
                       ...(!createClubForm.name.trim() || !createClubForm.description.trim() ? { opacity: 0.6 } : {})
@@ -649,7 +722,6 @@ useEffect(() => {
 
       {isAuthenticated && currentTab === 'settings' && (
         <div className="pb-6">
-          <AccountSettings />
           <NotificationSettings />
           <PreferencesSettings />
           <SecuritySettings />
@@ -875,13 +947,17 @@ useEffect(() => {
                 name: user.name,
                 bio: user.bio,
                 location: user.location,
-                activities: user.activities,
+                activities: user.activities ? user.activities.join(',') : '',
               });
+            } catch (err) {
+              console.error(err);
+            } finally {
               setIsProfileEditOpen(false);
-            } catch (err) {}
+            }
           }}>
             Save
           </button>
+          
           
         }
       >

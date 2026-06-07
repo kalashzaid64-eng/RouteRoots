@@ -10,7 +10,7 @@ const SkateIcon = ({ size = 20, color = 'currentColor' }) => (
   </svg>
 );
 
-export const ProfileHeader = ({ user, onEditProfile, selectedActivities = [] }) => {
+export const ProfileHeader = ({ user, onEditProfile, selectedActivities = [] , onAvatarChange }) => {
   const initials =
     user?.name
       ? user.name
@@ -25,8 +25,36 @@ export const ProfileHeader = ({ user, onEditProfile, selectedActivities = [] }) 
     <div className="profile-header-container">
       <div className="profile-bg-gradient"></div>
       <div className="profile-avatar-wrapper">
-        <div className="profile-avatar">{initials}</div>
-      </div>
+  <div className="profile-avatar">
+    {user?.avatar 
+      ? <img src={user.avatar} style={{ width: '100%', height: '100%', borderRadius: '24px', objectFit: 'cover' }} />
+      : initials
+    }
+  </div>
+  <label style={{ 
+    position: 'absolute', 
+    bottom: '-8px', 
+    right: '-8px',
+    background: 'var(--primary-green)', 
+    borderRadius: '50%',
+    width: '28px',
+    height: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    border: '2px solid white'
+  }}>
+    <input 
+      type="file" 
+      accept="image/*" 
+      style={{ display: 'none' }}
+      onChange={(e) => onAvatarChange?.(e.target.files[0])}
+    />
+    <Edit3 size={14} color="white" />
+  </label>
+</div>
+
       <div className="container px-5">
         <div className="is-flex is-justify-content-between is-align-items-start mb-4">
           <div>

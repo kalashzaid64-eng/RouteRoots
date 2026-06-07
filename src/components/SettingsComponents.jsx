@@ -8,43 +8,7 @@ const Switch = ({ defaultChecked }) => (
   </label>
 );
 
-export const AccountSettings = () => (
-  <div className="container px-4 mt-4">
-    <div className="settings-section">
-      <div className="is-flex is-align-items-center gap-3 mb-4">
-        <User size={20} className="has-text-grey" />
-        <h3 className="title is-5 mb-0" style={{ fontWeight: 700 }}>Account Settings</h3>
-      </div>
-      <p className="has-text-grey mb-5" style={{ fontSize: '0.9rem' }}>
-        Manage your personal information and account details.
-      </p>
 
-      <div className="mb-4">
-        <label className="settings-label">Full Name</label>
-        <input className="settings-input" type="text" defaultValue="John Doe" />
-      </div>
-
-      <div className="mb-4">
-        <label className="settings-label">Email Address</label>
-        <input className="settings-input" type="email" defaultValue="john.doe@email.com" />
-      </div>
-
-      <div className="mb-4">
-        <label className="settings-label">Phone Number</label>
-        <input className="settings-input" type="tel" defaultValue="+1 (555) 123-4567" />
-      </div>
-
-      <div className="mb-5">
-        <label className="settings-label">Bio</label>
-        <input className="settings-input" type="text" defaultValue="Passionate runner and cyclist 🌱" />
-      </div>
-
-      <button className="button rr-btn-green is-fullwidth py-5" style={{ borderRadius: '12px' }}>
-        Save Changes
-      </button>
-    </div>
-  </div>
-);
 
 export const NotificationSettings = () => (
   <div className="container px-4">
