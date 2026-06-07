@@ -15,11 +15,18 @@ class ProfileController extends Controller
             'name' => 'sometimes|string',
             'bio' => 'sometimes|string',
             'location' => 'sometimes|string',
-            'avatar' => 'sometimes|string',
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
             'activities' => 'sometimes|string',
         ]);
 
-        $user->update($request->only('name', 'bio', 'location', 'avatar','activities'));
+        $data = $request->only('name', 'bio', 'location', 'activities');
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = asset('storage/' . $path);
+        }
+
+        $user->update($data);
 
         return response()->json([
             'message' => 'Profile updated successfully',

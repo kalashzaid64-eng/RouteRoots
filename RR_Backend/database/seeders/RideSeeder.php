@@ -1,0 +1,42 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Ride;
+use Illuminate\Database\Seeder;
+
+class RideSeeder extends Seeder
+{
+    public function run(): void
+    {
+        Ride::create([
+            'user_id' => 1,
+            'title' => 'Morning Run',
+            'activity_type' => 'running',
+            'location' => 'Amman',
+            'distance' => 5.5,
+            'fee' => 0,
+            'ride_date' => '2026-06-10 07:00:00',
+        ]);
+
+        Ride::create([
+            'user_id' => 1,
+            'title' => 'Evening Cycling',
+            'activity_type' => 'cycling',
+            'location' => 'Amman',
+            'distance' => 20,
+            'fee' => 5,
+            'ride_date' => '2026-06-11 18:00:00',
+        ]);
+
+        Ride::create([
+            'user_id' => 2,
+            'title' => 'Weekend Skate',
+            'activity_type' => 'skating',
+            'location' => 'Amman',
+            'distance' => 10,
+            'fee' => 0,
+            'ride_date' => '2026-06-12 10:00:00',
+        ]);
+    }
+}
