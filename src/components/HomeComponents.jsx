@@ -102,7 +102,7 @@ export const RideCard = ({ ride, onOpenDetails, onToggleJoin, isJoined = false }
             </div>
             <div>
               <h3 className="title is-5 mb-1" style={{ fontWeight: 700 }}>{ride.title}</h3>
-              <p className="subtitle is-7 has-text-grey mb-0">{ride.organizer}</p>
+              <p className="subtitle is-7 has-text-grey mb-0">{ride.organizer?.name ?? ride.organizer}</p>
             </div>
           </div>
           <div className={`rr-activity-badge ${badgeClass}`}>

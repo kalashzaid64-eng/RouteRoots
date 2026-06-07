@@ -245,7 +245,8 @@ function App() {
           email: data.email ?? '' ,
           location: data.location ?? '',
           bio: data.bio ?? '',
-          activities: data.activities ? data.activities.split(',') : []
+          activities: data.activities ? data.activities.split(',') : [],
+          avatar: data.avatar ?? ''
 
         });
       } catch (err) {}
@@ -286,9 +287,11 @@ useEffect(() => {
   const fetchRides = async () => {
     try {
       const response = await api.get('/rides');
-      setRides(response.data);
+      const data = Array.isArray(response.data) ? response.data : response.data.data ?? [];
+      setRides(data);
     } catch (err) {}
   };
+  
 
   if (isAuthenticated) {
     fetchRides();
