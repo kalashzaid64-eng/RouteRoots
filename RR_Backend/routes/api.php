@@ -21,6 +21,7 @@ Route::middleware('auth:api')->group(function () {
 
     // Profile
     Route::put('/profile', [ProfileController::class, 'update']);
+    Route::get('/profile/stats', [ProfileController::class, 'stats']);
 
     // Rides
     Route::apiResource('rides', RideController::class);

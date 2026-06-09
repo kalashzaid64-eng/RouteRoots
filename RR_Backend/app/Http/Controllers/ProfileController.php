@@ -33,4 +33,19 @@ class ProfileController extends Controller
             'user' => $user,
         ]);
     }
+    public function stats()
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        $totalRides = $user->joinedRides()->count();
+        $totalDistance = $user->activities()->sum('distance');
+        $totalDuration = $user->activities()->sum('duration');
+
+        return response()->json([
+            'total_rides' => $totalRides,
+            'total_distance' => $totalDistance,
+            'total_duration' => $totalDuration,
+        ]);
+    }
 }
