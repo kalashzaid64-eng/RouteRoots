@@ -24,6 +24,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/profile/stats', [ProfileController::class, 'stats']);
 
     // Rides
+    Route::get('/rides/nearby', [RideController::class, 'nearby']);
     Route::apiResource('rides', RideController::class);
     Route::post('/rides/{id}/join', [RideController::class, 'join']);
     Route::post('/rides/{id}/leave', [RideController::class, 'leave']);

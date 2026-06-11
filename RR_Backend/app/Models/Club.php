@@ -10,10 +10,12 @@ class Club extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'name',
-        'description',
-        'activity_type',
+    'user_id',
+    'name',
+    'description',
+    'activity_type',
+    'location',
+    'rating',
     ];
 
     public function creator()

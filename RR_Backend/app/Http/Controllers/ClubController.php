@@ -9,9 +9,10 @@ class ClubController extends Controller
 {
     public function index()
     {
-        $clubs = Club::with('creator')->get();
-        return response()->json($clubs);
+    $clubs = Club::with('creator')->withCount('members')->get();
+    return response()->json($clubs);
     }
+
 
     public function store(Request $request)
     {
@@ -19,6 +20,8 @@ class ClubController extends Controller
             'name' => 'required|string',
             'description' => 'required|string',
             'activity_type' => 'required|in:running,cycling,skating',
+            'location' => 'nullable|string',
+            'rating' => 'nullable|numeric',
         ]);
 
         $club = Club::create([
@@ -26,6 +29,8 @@ class ClubController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'activity_type' => $request->activity_type,
+            'location' => $request->location,
+            'rating' => $request->rating,
         ]);
 
         return response()->json([
@@ -36,9 +41,10 @@ class ClubController extends Controller
 
     public function show($id)
     {
-        $club = Club::with('creator', 'members')->findOrFail($id);
-        return response()->json($club);
+    $club = Club::with('creator', 'members')->withCount('members')->findOrFail($id);
+    return response()->json($club);
     }
+
 
     public function update(Request $request, $id)
     {

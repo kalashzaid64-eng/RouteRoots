@@ -7,9 +7,15 @@ use Illuminate\Http\Request;
 
 class RideController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rides = Ride::with('organizer')->get();
+        $query = Ride::with('organizer');
+
+        if ($request->has('activity_type')) {
+            $query->where('activity_type', $request->activity_type);
+        }
+
+        $rides = $query->get();
         return response()->json($rides);
     }
 
@@ -22,6 +28,9 @@ class RideController extends Controller
             'distance' => 'required|numeric',
             'fee' => 'nullable|numeric',
             'ride_date' => 'required|date',
+            'duration' => 'nullable|integer',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         $ride = Ride::create([
@@ -32,6 +41,9 @@ class RideController extends Controller
             'distance' => $request->distance,
             'fee' => $request->fee,
             'ride_date' => $request->ride_date,
+            'duration' => $request->duration,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
         ]);
 
         return response()->json([
@@ -94,6 +106,28 @@ class RideController extends Controller
     return response()->json([
         'message' => 'Left ride successfully',
     ]);
+}
+public function nearby(Request $request)
+{
+    $request->validate([
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+        'radius' => 'nullable|numeric',
+    ]);
+
+    $lat = $request->latitude;
+    $lng = $request->longitude;
+    $radius = $request->radius ?? 10; // كم افتراضي
+
+    $rides = Ride::with('organizer')
+        ->whereNotNull('latitude')
+        ->whereNotNull('longitude')
+        ->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance_km", [$lat, $lng, $lat])
+        ->having('distance_km', '<=', $radius)
+        ->orderBy('distance_km')
+        ->get();
+
+    return response()->json($rides);
 }
 }
 

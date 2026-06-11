@@ -10,13 +10,16 @@ class Ride extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'title',
-        'activity_type',
-        'location',
-        'distance',
-        'fee',
-        'ride_date',
+    'user_id',
+    'title',
+    'activity_type',
+    'location',
+    'distance',
+    'fee',
+    'ride_date',
+    'duration',
+    'latitude',
+    'longitude',
     ];
 
     public function organizer()
