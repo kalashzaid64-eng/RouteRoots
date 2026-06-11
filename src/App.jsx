@@ -228,6 +228,12 @@ function App() {
   const [marketCategory, setMarketCategory] = useState('all');
   const [products, setProducts] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profileStats, setProfileStats] = useState({
+    total_rides: 0,
+    total_distance: '0',
+    total_duration: '0'
+  });
+  
   const [user, setUser] = useState({
     name: '',
     location: '',
@@ -298,7 +304,19 @@ useEffect(() => {
   }
 }, [isAuthenticated]);
 
-  
+useEffect(() => {
+  const fetchStats = async () => {
+    try {
+      const response = await api.get('/profile/stats');
+      setProfileStats(response.data);
+    } catch (err) {}
+  };
+
+  if (isAuthenticated) {
+    fetchStats();
+  }
+}, [isAuthenticated]);
+
 
   const [rideTypeFilter, setRideTypeFilter] = useState('all');
   const [clubTypeFilter, setClubTypeFilter] = useState('all');
@@ -329,21 +347,34 @@ useEffect(() => {
 
 
   const filteredRides = useMemo(() => {
-    return rideTypeFilter === 'all' ? rides : rides.filter((r) => r.activity_type === rideTypeFilter);
+    return rideTypeFilter === 'all' 
+      ? rides 
+      : rides.filter((r) => r.activity_type?.toLowerCase() === rideTypeFilter.toLowerCase());
   }, [rideTypeFilter, rides]);
+  
   
 
   const filteredClubs = useMemo(() => {
     return clubTypeFilter === 'all' 
       ? clubsData 
-      : clubsData.filter((c) => c.type?.toLowerCase() === clubTypeFilter.toLowerCase());
+      : clubsData.filter((c) => {
+          const type = c.activity_type || c.type;
+          return type?.toLowerCase() === clubTypeFilter.toLowerCase();
+        });
   }, [clubTypeFilter, clubsData]);
+  
   
 
   const myClubs = useMemo(() => {
     const joined = clubsData.filter((c) => joinedClubIds.includes(c.id));
-    return clubTypeFilter === 'all' ? joined : joined.filter((c) => c.type?.toLowerCase() === clubTypeFilter.toLowerCase());
+    return clubTypeFilter === 'all' 
+      ? joined 
+      : joined.filter((c) => {
+          const type = c.activity_type || c.type;
+          return type?.toLowerCase() === clubTypeFilter.toLowerCase();
+        });
   }, [clubTypeFilter, clubsData, joinedClubIds]);
+  
   
 
   const cartCount = useMemo(() => {
@@ -500,21 +531,32 @@ useEffect(() => {
 
 
 
-      {isAuthenticated && currentTab === 'home' && (
-        <>
-          <HeroBanner />
-          <RideFilters activeType={rideTypeFilter} setActiveType={setRideTypeFilter} />
-          {filteredRides.map((ride) => (
-            <RideCard
-              key={ride.id}
-              ride={ride}
-              isJoined={joinedRideIds.includes(ride.id)}
-              onToggleJoin={toggleJoinRide}
-              onOpenDetails={(r) => setSelectedRide(r)}
-            />
-          ))}
-        </>
-      )}
+{isAuthenticated && currentTab === 'home' && (
+  <>
+    <HeroBanner />
+    <RideFilters activeType={rideTypeFilter} setActiveType={setRideTypeFilter} />
+    {filteredRides.length === 0 ? (
+      <div className="container px-4 mt-5">
+        <div className="rr-card has-text-centered py-6">
+          <p style={{ fontSize: '3rem' }}>🚴</p>
+          <h3 className="title is-5 mt-3" style={{ fontWeight: 700 }}>No rides found</h3>
+          <p className="has-text-grey">Try a different activity filter.</p>
+        </div>
+      </div>
+    ) : (
+      filteredRides.map((ride) => (
+        <RideCard
+          key={ride.id}
+          ride={ride}
+          isJoined={joinedRideIds.includes(ride.id)}
+          onToggleJoin={toggleJoinRide}
+          onOpenDetails={(r) => setSelectedRide(r)}
+        />
+      ))
+    )}
+  </>
+)}
+
       
       {isAuthenticated && currentTab === 'profile' && (
         <>
@@ -546,7 +588,7 @@ useEffect(() => {
   
 />
 
-          <ProfileStats />
+          <ProfileStats stats={profileStats} />
           <AchievementsSection />
           <RecentActivitySection />
         </>
@@ -779,16 +821,16 @@ useEffect(() => {
               </div>
             </div>
             <p className="has-text-grey-dark mb-3" style={{ lineHeight: 1.6 }}>
-              Organized by <span className="has-text-weight-semibold">{selectedRide.organizer}</span>
+            Organized by <span className="has-text-weight-semibold">{selectedRide.organizer?.name ?? selectedRide.organizer}</span>
             </p>
             <div className="rr-card" style={{ background: '#F8F9FA', border: 'none' }}>
               <div className="is-flex is-justify-content-space-between mb-2">
                 <span className="has-text-grey">Date</span>
-                <span className="has-text-weight-semibold">{selectedRide.date}</span>
+                <span className="has-text-weight-semibold">{selectedRide.ride_date ? new Date(selectedRide.ride_date).toLocaleDateString() : ''}</span>
               </div>
               <div className="is-flex is-justify-content-space-between mb-2">
                 <span className="has-text-grey">Time</span>
-                <span className="has-text-weight-semibold">{selectedRide.time}</span>
+                <span className="has-text-weight-semibold">{selectedRide.ride_date ? new Date(selectedRide.ride_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
               </div>
               <div className="is-flex is-justify-content-space-between mb-2">
                 <span className="has-text-grey">Location</span>

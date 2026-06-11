@@ -81,7 +81,7 @@ export const ProfileHeader = ({ user, onEditProfile, selectedActivities = [] , o
   );
 };
 
-export const ProfileStats = () => (
+export const ProfileStats = ({ stats }) => (
   <div className="container px-4 mt-5">
     <div className="columns is-mobile is-multiline is-variable is-3">
       <div className="column is-6">
@@ -89,7 +89,9 @@ export const ProfileStats = () => (
           <div className="stat-icon-container">
             <Target size={20} />
           </div>
-          <h4 className="title is-4 mb-0" style={{ fontWeight: 800 }}>124</h4>
+          <h4 className="title is-4 mb-0" style={{ fontWeight: 800, color: 'var(--text-dark)' }}>
+            {stats?.total_rides ?? 0}
+          </h4>
           <p className="has-text-grey is-size-7">Total Rides</p>
         </div>
       </div>
@@ -98,7 +100,9 @@ export const ProfileStats = () => (
           <div className="stat-icon-container">
             <Activity size={20} />
           </div>
-          <h4 className="title is-4 mb-0" style={{ fontWeight: 800 }}>1,847 km</h4>
+          <h4 className="title is-4 mb-0" style={{ fontWeight: 800, color: 'var(--text-dark)' }}>
+            {stats?.total_distance ?? 0} km
+          </h4>
           <p className="has-text-grey is-size-7">Distance</p>
         </div>
       </div>
@@ -107,8 +111,10 @@ export const ProfileStats = () => (
           <div className="stat-icon-container">
             <Clock size={20} />
           </div>
-          <h4 className="title is-4 mb-0" style={{ fontWeight: 800 }}>156</h4>
-          <p className="has-text-grey is-size-7">Hours</p>
+          <h4 className="title is-4 mb-0" style={{ fontWeight: 800, color: 'var(--text-dark)' }}>
+            {stats?.total_duration ?? 0}
+          </h4>
+          <p className="has-text-grey is-size-7">Minutes</p>
         </div>
       </div>
       <div className="column is-6">
@@ -116,13 +122,16 @@ export const ProfileStats = () => (
           <div className="stat-icon-container">
             <Users size={20} />
           </div>
-          <h4 className="title is-4 mb-0" style={{ fontWeight: 800 }}>8</h4>
+          <h4 className="title is-4 mb-0" style={{ fontWeight: 800, color: 'var(--text-dark)' }}>
+            {stats?.total_rides ?? 0}
+          </h4>
           <p className="has-text-grey is-size-7">Clubs</p>
         </div>
       </div>
     </div>
   </div>
 );
+
 
 export const AchievementsSection = () => (
   <div className="container px-4 mt-5">
@@ -136,7 +145,7 @@ export const AchievementsSection = () => (
       {[
         { icon: '🏃', name: 'First 5K', date: 'Nov 2025' },
         { icon: '🚴', name: 'Century Ride', date: 'Oct 2025' },
-        { icon: '🛼', name: 'First Skate Session', date: 'Sep 2025' },
+        { icon: '⛸️', name: 'First Skate Session', date: 'Sep 2025' },
         { icon: '🌅', name: 'Early Bird', date: 'Sep 2025' },
         { icon: '👥', name: '10 Clubs', date: 'Aug 2025' }
       ].map((ach, i) => (

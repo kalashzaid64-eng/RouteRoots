@@ -44,7 +44,7 @@ export const RideFilters = ({ activeType = 'all', setActiveType }) => {
   return (
     <div className="container px-4 mt-5">
       <div className="is-flex is-justify-content-space-between is-align-items-end mb-4">
-        <h2 className="title is-4 mb-0" style={{ fontWeight: 700 }}>Upcoming<br/>Rides</h2>
+        <h2 className="title is-4 mb-0" style={{ fontWeight: 700,  color: 'var(--text-dark)' }}>Upcoming Rides</h2>
 
         <div className={`dropdown is-right ${isOpen ? 'is-active' : ''}`}>
           <div className="dropdown-trigger">
@@ -82,31 +82,42 @@ export const RideFilters = ({ activeType = 'all', setActiveType }) => {
 };
 
 export const RideCard = ({ ride, onOpenDetails, onToggleJoin, isJoined = false }) => {
-  const badgeClass =
-    ride.type === 'Running' ? 'badge-running' :
-    ride.type === 'Cycling' ? 'badge-cycling' :
-    'badge-skating';
+ const type = ride.activity_type 
+  ? ride.activity_type.charAt(0).toUpperCase() + ride.activity_type.slice(1).toLowerCase()
+  : ride.type ?? '';
 
-  const icon =
-    ride.type === 'Running' ? <Footprints size={22} color="var(--running-blue)" /> :
-    ride.type === 'Cycling' ? <Bike size={22} color="var(--cycling-green)" /> :
-    <SkateIcon size={22} color="var(--skating-purple)" />;
+const badgeClass =
+  type === 'Running' ? 'badge-running' :
+  type === 'Cycling' ? 'badge-cycling' :
+  'badge-skating';
+
+const icon =
+  type === 'Running' ? <Footprints size={22} color="var(--running-blue)" /> :
+  type === 'Cycling' ? <Bike size={22} color="var(--cycling-green)" /> :
+  <SkateIcon size={22} color="var(--skating-purple)" />;
+
+  const isPast = ride.ride_date ? new Date(ride.ride_date) < new Date() : false;
+
+  // const icon =
+  //   ride.type === 'Running' ? <Footprints size={22} color="var(--running-blue)" /> :
+  //   ride.type === 'Cycling' ? <Bike size={22} color="var(--cycling-green)" /> :
+  //   <SkateIcon size={22} color="var(--skating-purple)" />;
 
   return (
     <div className="container px-4 mt-4">
-      <div className="rr-card">
+      <div className="rr-card" style={{ opacity: isPast ? 0.6 : 1 }}>
         <div className="is-flex is-justify-content-between is-align-items-start mb-4">
           <div className="is-flex is-align-items-center gap-3">
             <div className="rr-icon-container">
               {icon}
             </div>
             <div>
-              <h3 className="title is-5 mb-1" style={{ fontWeight: 700 }}>{ride.title}</h3>
+              <h3 className="title is-5 mb-1" style={{ fontWeight: 700,  color: 'var(--text-dark)',margin:'5px' }}>{ride.title}</h3>
               <p className="subtitle is-7 has-text-grey mb-0">{ride.organizer?.name ?? ride.organizer}</p>
             </div>
           </div>
           <div className={`rr-activity-badge ${badgeClass}`}>
-            {ride.type}
+            {type}
           </div>
         </div>
 
@@ -118,7 +129,8 @@ export const RideCard = ({ ride, onOpenDetails, onToggleJoin, isJoined = false }
           </div>
           <div className="column is-6">
             <div className="is-flex is-align-items-center gap-2 has-text-grey" style={{ fontSize: '0.85rem' }}>
-              <Clock size={16} /> {ride.time}
+              <Clock size={16} /> {ride.ride_date ? new Date(ride.ride_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+
             </div>
           </div>
           <div className="column is-12">
@@ -131,9 +143,9 @@ export const RideCard = ({ ride, onOpenDetails, onToggleJoin, isJoined = false }
         <div className="is-flex is-align-items-center is-justify-content-between pt-4" style={{ borderTop: '1px solid #F0F0F0' }}>
           <div className="is-flex is-align-items-center gap-4">
             <span className="has-text-weight-bold has-text-grey-darker">
-              {ride.fee === 'Free' ? 'Free' : `$ ${ride.fee}`}
+            {ride.fee === '0.00' || ride.fee === 0 ? 'Free' : `$ ${ride.fee}`}
             </span>
-            <div className="is-flex is-align-items-center gap-1 has-text-grey" style={{ fontSize: '0.85rem' }}>
+            <div className="is-flex is-align-items-center gap-1 has-text-grey" style={{ fontSize: '0.85rem',margin:'5px' }}>
               <Users size={16} /> {ride.joinedCount} joined
             </div>
           </div>
@@ -147,9 +159,14 @@ export const RideCard = ({ ride, onOpenDetails, onToggleJoin, isJoined = false }
                 Details <ChevronRight size={18} />
               </span>
             </button>
-            <button className="button rr-btn-green" onClick={() => onToggleJoin?.(ride)} style={isJoined ? { opacity: 0.85 } : {}}>
-              {isJoined ? 'Joined' : 'Join'}
-            </button>
+            {!isPast ? (
+  <button className="button rr-btn-green" onClick={() => onToggleJoin?.(ride)} style={isJoined ? { opacity: 0.85 } : {}}>
+    {isJoined ? 'Joined' : 'Join'}
+  </button>
+) : (
+  <span className="has-text-grey" style={{ fontWeight: 600, fontSize: '0.9rem' }}>Ended</span>
+)}
+
           </div>
         </div>
       </div>
