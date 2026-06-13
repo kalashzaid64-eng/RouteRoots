@@ -36,8 +36,10 @@ Route::middleware('auth:api')->group(function () {
 
     // Products
     Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/recommendations', [ProductController::class, 'recommend']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/products', [ProductController::class, 'store']);
+    
 
     // Activities
     Route::get('/activities', [ActivityController::class, 'index']);

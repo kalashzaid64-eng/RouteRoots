@@ -16,5 +16,8 @@ class Product extends Model
         'category',
         'activity_type',
         'image',
+        'views',
+        'purchases',
+        'rating',
     ];
 }
