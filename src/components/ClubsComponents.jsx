@@ -56,21 +56,25 @@ export const ClubsHeader = ({ activeTab = 'explore', setActiveTab, activeType = 
 );
 
 export const ClubCard = ({ club, onOpenDetails }) => {
+  const type = (club.activity_type || type || '')
+  .charAt(0).toUpperCase() + 
+  (club.activity_type || type || '').slice(1).toLowerCase();
+
   const avatarClass =
-    club.type === 'Running' ? 'club-avatar-running' :
-    club.type === 'Cycling' ? 'club-avatar-cycling' :
+    type === 'Running' ? 'club-avatar-running' :
+    type === 'Cycling' ? 'club-avatar-cycling' :
     'club-avatar-skating';
 
   const badgeClass =
-    club.type === 'Running' ? 'badge-running' :
-    club.type === 'Cycling' ? 'badge-cycling' :
+    type === 'Running' ? 'badge-running' :
+    type === 'Cycling' ? 'badge-cycling' :
     'badge-skating';
   
   // Create a soft gradient background based on the club type
   const bgGradient =
-    club.type === 'Running'
+    type === 'Running'
       ? 'linear-gradient(180deg, rgba(87, 166, 217, 0.15) 0%, rgba(255,255,255,0) 100%)'
-      : club.type === 'Cycling'
+      : type === 'Cycling'
         ? 'linear-gradient(180deg, rgba(121, 180, 79, 0.15) 0%, rgba(255,255,255,0) 100%)'
         : 'linear-gradient(180deg, rgba(224, 90, 42, 0.14) 0%, rgba(255,255,255,0) 100%)';
 
@@ -79,7 +83,7 @@ export const ClubCard = ({ club, onOpenDetails }) => {
       <div className="club-card" style={{ paddingTop: '0', overflow: 'hidden', cursor: 'pointer' }} onClick={() => onOpenDetails?.(club)}>
         <div style={{ height: '100px', background: bgGradient, margin: '0 -1.5rem', position: 'relative' }}>
           <div className={`club-activity-badge ${badgeClass}`}>
-            {club.type}
+            {type}
           </div>
         </div>
         
@@ -97,7 +101,7 @@ export const ClubCard = ({ club, onOpenDetails }) => {
         <div className="is-flex is-align-items-center is-justify-content-space-between pt-4" style={{ borderTop: '1px solid #F0F0F0' }}>
           <div className="is-flex is-align-items-center gap-4">
             <div className="is-flex is-align-items-center gap-1 has-text-grey-dark" style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-              <Users size={16} /> {club.members}
+              <Users size={16} /> {club.members_count ?? 0}
             </div>
             <div className="is-flex is-align-items-center gap-1" style={{ color: '#F59E0B', fontWeight: 600, fontSize: '0.9rem' }}>
               <Star size={16} fill="currentColor" /> {club.rating}

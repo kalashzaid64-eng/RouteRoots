@@ -135,7 +135,8 @@ const icon =
           </div>
           <div className="column is-12">
             <div className="is-flex is-align-items-center gap-2 has-text-grey" style={{ fontSize: '0.85rem' }}>
-              <MapPin size={16} /> {ride.location} <span className="mx-1">•</span> {ride.distance} <span className="mx-1">•</span> ~{ride.duration}
+            <MapPin size={16} /> {ride.location} <span className="mx-1">•</span> {ride.distance} km <span className="mx-1">•</span> {ride.duration} min
+
             </div>
           </div>
         </div>

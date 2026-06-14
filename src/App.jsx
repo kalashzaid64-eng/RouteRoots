@@ -853,7 +853,7 @@ useEffect(() => {
           selectedClub ? (
             <div className="is-flex is-justify-content-space-between is-align-items-center" style={{ width: '100%', gap: '12px' }}>
               <div className="has-text-grey-dark">
-                <span className="has-text-weight-semibold">{selectedClub.members}</span> members
+              <span className="has-text-weight-semibold">{selectedClub.members_count ?? 0}</span> members
               </div>
               <button className="button rr-btn-green" onClick={() => toggleJoinClub(selectedClub)}>
                 {joinedClubIds.includes(selectedClub.id) ? 'Leave Club' : 'Join Club'}
