@@ -228,6 +228,7 @@ function App() {
   const [marketCategory, setMarketCategory] = useState('all');
   const [products, setProducts] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
   const [profileStats, setProfileStats] = useState({
     total_rides: 0,
     total_distance: '0',
@@ -316,6 +317,20 @@ useEffect(() => {
     fetchStats();
   }
 }, [isAuthenticated]);
+
+useEffect(() => {
+  const fetchRecommendations = async () => {
+    try {
+      const response = await api.get('/products/recommendations');
+      setRecommendations(response.data.recommendations);
+    } catch (err) {}
+  };
+
+  if (isAuthenticated) {
+    fetchRecommendations();
+  }
+}, [isAuthenticated]);
+
 
 
   const [rideTypeFilter, setRideTypeFilter] = useState('all');
@@ -751,7 +766,7 @@ useEffect(() => {
             onOpenCart={() => setIsCartOpen(true)}
             cartCount={cartCount}
           />
-          <MarketBanner />
+          <MarketBanner recommendations={recommendations} />
           <div className="pb-6">
             {filteredProducts.map((product) => (
               <ProductCard

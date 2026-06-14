@@ -56,7 +56,7 @@ class ProductController extends Controller
         });
 
         $payload = [
-            'user_activity' => explode(',', $user->activities ?? 'running')[0],
+            'user_activity' => strtolower(trim(explode(',', $user->activities ?? 'running')[0])),
             'user_category_pref' => ucfirst(strtolower($request->get('category', 'Footwear'))),
             'products' => $products,
         ];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Search, Sliders, ShoppingCart, ArrowRight, Star, ShoppingBag } from 'lucide-react';
 
-export const MarketBanner = () => (
+export const MarketBanner = ({ recommendations = [] }) => (
   <div className="container px-4 mt-4">
     <div className="ai-recommendation-banner">
       <div className="is-flex is-align-items-center gap-3 mb-4">
@@ -12,15 +12,26 @@ export const MarketBanner = () => (
           <h3 className="title is-5 mb-0" style={{ fontWeight: 800 }}>AI-Powered Recommendations</h3>
         </div>
       </div>
-      <p className="subtitle is-6 mb-5" style={{ color: '#455A64', lineHeight: 1.5 }}>
-        Based on your running, cycling, and skating activity, we think you'll love these picks.
+      <p className="subtitle is-6 mb-4" style={{ color: '#455A64', lineHeight: 1.5 }}>
+        Based on your activity, we think you'll love these picks.
       </p>
-      <button className="button is-fullwidth" style={{ backgroundColor: '#D4EDDA', color: '#2E7D32', border: 'none', borderRadius: '12px', fontWeight: 600 }}>
-        View Personalized Picks <ArrowRight size={18} className="ml-2" />
-      </button>
+      {recommendations.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {recommendations.slice(0, 3).map((rec) => (
+            <div key={rec.product.id} className="is-flex is-justify-content-space-between is-align-items-center" style={{ background: 'white', borderRadius: '12px', padding: '10px 14px' }}>
+              <div>
+                <p className="has-text-weight-bold mb-0" style={{ fontSize: '0.9rem' }}>{rec.product.name}</p>
+                <p className="has-text-grey is-size-7">{rec.product.category}</p>
+              </div>
+              <span className="has-text-weight-bold" style={{ color: 'var(--primary-green)' }}>${rec.product.price}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   </div>
 );
+
 
 export const MarketHeader = ({ activeCategory, setActiveCategory, onOpenCart, cartCount = 0 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -104,11 +115,15 @@ export const ProductCard = ({ product, onOpenDetails, onAddToCart }) => {
   return (
     <div className="container px-4 mt-4">
       <div className="product-card" onClick={() => onOpenDetails?.(product)} style={{ cursor: 'pointer' }}>
-        <div className="product-image-container">
-          {product.discount && <div className="discount-tag">-{product.discount}%</div>}
-          <div className={`category-tag ${getCategoryClass(product.category)}`}>{product.category}</div>
-          <ShoppingBag size={80} strokeWidth={1} />
-        </div>
+      <div className="product-image-container">
+  {product.discount && <div className="discount-tag">-{product.discount}%</div>}
+  <div className={`category-tag ${getCategoryClass(product.category)}`}>{product.category}</div>
+  {product.image 
+    ? <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    : <ShoppingBag size={80} strokeWidth={1} />
+  }
+</div>
+
         
         <div className="product-info">
           <h3 className="title is-5 mb-2" style={{ fontWeight: 800 }}>{product.name}</h3>
