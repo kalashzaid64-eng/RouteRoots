@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Club;
 use App\Models\Ride;
-use Illuminate\Http\Request;
-use App\Services\NotificationService;
 use App\Models\User;
+use App\Services\NotificationService;
+use Illuminate\Http\Request;
 
 class RideController extends Controller
 {
@@ -33,7 +34,19 @@ class RideController extends Controller
             'duration' => 'nullable|integer',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'club_id' => 'required|exists:clubs,id',
         ]);
+
+        $club = Club::findOrFail($request->club_id);
+
+        $isMember = $club->members()->where('user_id', auth()->id())->exists();
+        $isOwner = $club->user_id === auth()->id();
+
+        if (!$isMember && !$isOwner) {
+            return response()->json([
+                'message' => 'You must be a member or owner of this club to create a ride',
+            ], 403);
+        }
 
         $ride = Ride::create([
             'user_id' => auth()->id(),
@@ -46,6 +59,7 @@ class RideController extends Controller
             'duration' => $request->duration,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
+            'club_id' => $request->club_id,
         ]);
 
         // إشعار للناس القريبين
