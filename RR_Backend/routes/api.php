@@ -4,6 +4,7 @@ use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClubController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RideController;
@@ -25,9 +26,9 @@ Route::middleware('auth:api')->group(function () {
 
     // Rides
     Route::get('/rides/nearby', [RideController::class, 'nearby']);
-    Route::apiResource('rides', RideController::class);
     Route::post('/rides/{id}/join', [RideController::class, 'join']);
     Route::post('/rides/{id}/leave', [RideController::class, 'leave']);
+    Route::apiResource('rides', RideController::class);
 
     // Clubs
     Route::apiResource('clubs', ClubController::class);
@@ -48,4 +49,9 @@ Route::middleware('auth:api')->group(function () {
     // Achievements
     Route::get('/achievements', [AchievementController::class, 'index']);
     Route::post('/achievements', [AchievementController::class, 'store']);
+
+    // Notifications
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
 });

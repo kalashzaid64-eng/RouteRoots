@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Club;
 use Illuminate\Http\Request;
+use App\Services\NotificationService;
 
 class ClubController extends Controller
 {
@@ -81,6 +82,12 @@ class ClubController extends Controller
     {
         $club = Club::findOrFail($id);
         $club->members()->attach(auth()->id());
+
+        NotificationService::send($club->user_id, 'club_joined', [
+            'club_id' => $club->id,
+            'name' => $club->name,
+            'joined_by' => auth()->user()->name,
+        ]);
 
         return response()->json([
             'message' => 'Joined club successfully',

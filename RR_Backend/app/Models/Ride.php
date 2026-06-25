@@ -11,6 +11,7 @@ class Ride extends Model
 
     protected $fillable = [
     'user_id',
+    'club_id',
     'title',
     'activity_type',
     'location',
@@ -21,6 +22,11 @@ class Ride extends Model
     'latitude',
     'longitude',
     ];
+
+    public function club()
+    {
+        return $this->belongsTo(Club::class);
+    }
 
     public function organizer()
     {

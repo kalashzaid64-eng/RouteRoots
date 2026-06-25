@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Ride;
 use Illuminate\Http\Request;
+use App\Services\NotificationService;
+use App\Models\User;
 
 class RideController extends Controller
 {
@@ -45,6 +47,38 @@ class RideController extends Controller
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
         ]);
+
+        // إشعار للناس القريبين
+        $nearbyUsers = User::where('id', '!=', auth()->id())
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance_km", [$ride->latitude, $ride->longitude, $ride->latitude])
+            ->having('distance_km', '<=', 10)
+            ->get();
+
+        foreach ($nearbyUsers as $user) {
+            NotificationService::send($user->id, 'new_ride_nearby', [
+                'ride_id' => $ride->id,
+                'title' => $ride->title,
+                'location' => $ride->location,
+            ]);
+        }
+
+        // إشعار لأعضاء الـ clubs اللي عندهم نفس نوع النشاط
+        $clubs = \App\Models\Club::where('activity_type', $ride->activity_type)->with('members')->get();
+
+        foreach ($clubs as $club) {
+            foreach ($club->members as $member) {
+                if ($member->id !== auth()->id()) {
+                    NotificationService::send($member->id, 'new_ride_for_club', [
+                        'ride_id' => $ride->id,
+                        'title' => $ride->title,
+                        'club_id' => $club->id,
+                        'club_name' => $club->name,
+                    ]);
+                }
+            }
+        }
 
         return response()->json([
             'message' => 'Ride created successfully',
@@ -93,6 +127,12 @@ class RideController extends Controller
     {
         $ride = Ride::findOrFail($id);
         $ride->participants()->attach(auth()->id());
+
+        NotificationService::send($ride->user_id, 'ride_joined', [
+            'ride_id' => $ride->id,
+            'title' => $ride->title,
+            'joined_by' => auth()->user()->name,
+        ]);
 
         return response()->json([
             'message' => 'Joined ride successfully',
