@@ -10,7 +10,7 @@ const SkateIcon = ({ size = 22, color = 'currentColor' }) => (
   </svg>
 );
 
-export const HeroBanner = () => (
+export const HeroBanner = ({ onFindNearby }) => (
   <div className="container px-4 mt-4">
     <div className="rr-hero">
       <div className="rr-badge-brown mb-3">
@@ -22,9 +22,10 @@ export const HeroBanner = () => (
       <p className="subtitle is-6 has-text-white mb-5" style={{ opacity: 0.9, lineHeight: 1.5 }}>
         Join local rides, connect with clubs, and track your journey with RouteRoots.
       </p>
-      <button className="button is-large rr-btn-brown">
-        <MapPin size={20} /> Find Rides Near Me
-      </button>
+      <button className="button is-large rr-btn-brown" onClick={() => onFindNearby?.()}>
+  <MapPin size={20} /> Find Rides Near Me
+</button>
+
     </div>
   </div>
 );

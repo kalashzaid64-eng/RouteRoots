@@ -133,70 +133,74 @@ export const ProfileStats = ({ stats }) => (
 );
 
 
-export const AchievementsSection = () => (
+export const AchievementsSection = ({ achievements = [] }) => (
   <div className="container px-4 mt-5">
     <div className="is-flex is-justify-content-between is-align-items-center mb-4">
-      <h3 className="title is-5 mb-0" style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <h3 className="title is-5 mb-0" style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' , margin:'5px' , color: 'var(--text-dark)' }}>
         <Trophy size={20} color="#FFD700" fill="#FFD700" /> Achievements
       </h3>
       <a href="#" className="has-text-grey-dark" style={{ fontSize: '0.9rem', fontWeight: 600 }}>View All</a>
     </div>
-    <div className="columns is-mobile is-multiline is-variable is-3">
-      {[
-        { icon: '🏃', name: 'First 5K', date: 'Nov 2025' },
-        { icon: '🚴', name: 'Century Ride', date: 'Oct 2025' },
-        { icon: '⛸️', name: 'First Skate Session', date: 'Sep 2025' },
-        { icon: '🌅', name: 'Early Bird', date: 'Sep 2025' },
-        { icon: '👥', name: '10 Clubs', date: 'Aug 2025' }
-      ].map((ach, i) => (
-        <div className="column is-6" key={i}>
-          <div className="achievement-card">
-            <span className="achievement-icon">{ach.icon}</span>
-            <p className="has-text-weight-bold is-size-6 mb-0">{ach.name}</p>
-            <p className="has-text-grey is-size-7">{ach.date}</p>
+    {achievements.length === 0 ? (
+      <div className="rr-card has-text-centered py-5">
+        <p style={{ fontSize: '2rem' }}>🏆</p>
+        <p className="has-text-grey mt-2">No achievements yet. Keep going!</p>
+      </div>
+    ) : (
+      <div className="columns is-mobile is-multiline is-variable is-3">
+        {achievements.map((ach, i) => (
+          <div className="column is-6" key={i}>
+            <div className="achievement-card">
+              <span className="achievement-icon">🏅</span>
+              <p className="has-text-weight-bold is-size-6 mb-0">{ach.title}</p>
+              <p className="has-text-grey is-size-7">{ach.description}</p>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    )}
   </div>
 );
 
-export const RecentActivitySection = () => (
+
+export const RecentActivitySection = ({ activities = [] }) => (
   <div className="container px-4 mt-5 mb-6">
     <div className="is-flex is-justify-content-between is-align-items-center mb-4">
       <h3 className="title is-5 mb-0" style={{ fontWeight: 700 }}>Recent Activity</h3>
       <a href="#" className="has-text-grey-dark" style={{ fontSize: '0.9rem', fontWeight: 600 }}>View All</a>
     </div>
-    {[
-      { title: 'Morning Trail Run', date: 'Dec 20, 2025', dist: '8 km', time: '48:32', type: 'Run' },
-      { title: 'Sunset City Skate', date: 'Dec 18, 2025', dist: '12 km', time: '1:05:00', type: 'Skate' },
-      { title: 'Weekend Mountain Ride', date: 'Dec 15, 2025', dist: '42 km', time: '2:15:00', type: 'Ride' }
-    ].map((act, i) => (
-      <div className="activity-item" key={i}>
-        <div className="is-flex is-align-items-center gap-3">
-          <div className="activity-icon-box">
-            {act.type === 'Run'
-              ? <Footprints size={20} color="var(--running-blue)" />
-              : act.type === 'Ride'
-                ? <Bike size={20} color="var(--cycling-green)" />
-                : <SkateIcon size={20} color="var(--skating-purple)" />
-            }
-          </div>
-          <div>
-            <h5 className="has-text-weight-bold mb-0">{act.title}</h5>
-            <div className="is-flex is-align-items-center gap-1 has-text-grey is-size-7 mt-1">
-              <Calendar size={12} /> {act.date}
+    {activities.length === 0 ? (
+      <div className="rr-card has-text-centered py-5">
+        <p style={{ fontSize: '2rem' }}>🏃</p>
+        <p className="has-text-grey mt-2">No activities yet. Start moving!</p>
+      </div>
+    ) : (
+      activities.map((act, i) => (
+        <div className="activity-item" key={i}>
+          <div className="is-flex is-align-items-center gap-3">
+            <div className="activity-icon-box">
+              {act.type === 'running'
+                ? <Footprints size={20} color="var(--running-blue)" />
+                : act.type === 'cycling'
+                  ? <Bike size={20} color="var(--cycling-green)" />
+                  : <SkateIcon size={20} color="var(--skating-purple)" />
+              }
+            </div>
+            <div>
+              <h5 className="has-text-weight-bold mb-0">{act.type}</h5>
+              <p className="has-text-grey is-size-7 mt-1">{act.date}</p>
             </div>
           </div>
+          <div className="has-text-right">
+            <p className="has-text-weight-bold mb-0" style={{ color: 'var(--primary-green)' }}>{act.distance} km</p>
+            <p className="has-text-grey is-size-7 mt-1">{act.duration} min</p>
+          </div>
         </div>
-        <div className="has-text-right">
-          <p className="has-text-weight-bold mb-0" style={{ color: 'var(--primary-green)' }}>{act.dist}</p>
-          <p className="has-text-grey is-size-7 mt-1">{act.time}</p>
-        </div>
-      </div>
-    ))}
+      ))
+    )}
   </div>
 );
+
 
 const Calendar = ({ size }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -56,9 +56,10 @@ export const ClubsHeader = ({ activeTab = 'explore', setActiveTab, activeType = 
 );
 
 export const ClubCard = ({ club, onOpenDetails }) => {
-  const type = (club.activity_type || type || '')
+  const type = (club.activity_type || club.type || '')
   .charAt(0).toUpperCase() + 
-  (club.activity_type || type || '').slice(1).toLowerCase();
+  (club.activity_type || club.type || '').slice(1).toLowerCase();
+
 
   const avatarClass =
     type === 'Running' ? 'club-avatar-running' :

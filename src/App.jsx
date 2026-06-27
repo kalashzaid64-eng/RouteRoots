@@ -229,6 +229,7 @@ function App() {
   const [products, setProducts] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [profileStats, setProfileStats] = useState({
     total_rides: 0,
     total_distance: '0',
@@ -330,6 +331,43 @@ useEffect(() => {
     fetchRecommendations();
   }
 }, [isAuthenticated]);
+useEffect(() => {
+  const fetchAchievements = async () => {
+    try {
+      const response = await api.get('/achievements');
+      setAchievements(response.data);
+    } catch (err) {}
+  };
+
+  if (isAuthenticated) {
+    fetchAchievements();
+  }
+}, [isAuthenticated]);
+useEffect(() => {
+  const fetchActivities = async () => {
+    try {
+      const response = await api.get('/activities');
+      setRecentActivities(response.data);
+    } catch (err) {}
+  };
+
+  if (isAuthenticated) {
+    fetchActivities();
+  }
+}, [isAuthenticated]);
+useEffect(() => {
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get('/notifications');
+      setNotifications(response.data);
+    } catch (err) {}
+  };
+
+  if (isAuthenticated) {
+    fetchNotifications();
+  }
+}, [isAuthenticated]);
+
 
 
 
@@ -337,6 +375,8 @@ useEffect(() => {
   const [clubTypeFilter, setClubTypeFilter] = useState('all');
   const [clubsTab, setClubsTab] = useState('explore');
   const [clubsData, setClubsData] = useState(MOCK_CLUBS);
+  const [achievements, setAchievements] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
   const [createClubForm, setCreateClubForm] = useState({
     name: '',
     type: 'Running',
@@ -426,6 +466,21 @@ useEffect(() => {
       console.error(err);
     }
   };
+  const findNearbyRides = () => {
+    console.log('finding nearby rides...');
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      console.log('got position', position.coords);
+      try {
+        const { latitude, longitude } = position.coords;
+        const response = await api.get(`/rides/nearby?latitude=${latitude}&longitude=${longitude}&radius=10`);
+        setRides(response.data);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  };
+  
+  
   
 
   const addToCart = (product) => {
@@ -457,7 +512,21 @@ useEffect(() => {
   const cartTotal = useMemo(() => cartLines.reduce((sum, l) => sum + l.lineTotal, 0), [cartLines]);
 
   return (
-    <Layout currentTab={currentTab} setCurrentTab={setCurrentTab} hideBottomNav={!isAuthenticated}>
+    <Layout 
+  currentTab={currentTab} 
+  setCurrentTab={setCurrentTab} 
+  hideBottomNav={!isAuthenticated}
+  unreadCount={notifications.filter(n => !n.is_read).length}
+  notifications={notifications}
+  onMarkAsRead={async (id) => {
+    try {
+      await api.post(`/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => n.id === id ? {...n, is_read: true} : n));
+    } catch (err) {}
+  }}
+>
+
+  
       {/* {!isAuthenticated && (
         <div className="container px-4" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
           <div className="rr-card" style={{ maxWidth: '520px', margin: '0 auto' }}>
@@ -548,7 +617,7 @@ useEffect(() => {
 
 {isAuthenticated && currentTab === 'home' && (
   <>
-    <HeroBanner />
+    <HeroBanner onFindNearby={findNearbyRides} />
     <RideFilters activeType={rideTypeFilter} setActiveType={setRideTypeFilter} />
     {filteredRides.length === 0 ? (
       <div className="container px-4 mt-5">
@@ -604,8 +673,9 @@ useEffect(() => {
 />
 
           <ProfileStats stats={profileStats} />
-          <AchievementsSection />
-          <RecentActivitySection />
+          <AchievementsSection achievements={achievements} />
+          <RecentActivitySection activities={recentActivities} />
+
         </>
       )}
 
@@ -726,29 +796,31 @@ useEffect(() => {
           {clubsTab !== 'create' && (
             <>
               {(clubsTab === 'my' ? myClubs : filteredClubs).length === 0 && (
-                <div className="container px-4 mt-5">
-                  <div className="rr-card">
-                    <h3 className="title is-5 mb-2" style={{ fontWeight: 800 }}>
-                      {clubsTab === 'my' ? 'No clubs yet' : 'No clubs found'}
-                    </h3>
-                    <p className="has-text-grey" style={{ lineHeight: 1.6 }}>
-                      {clubsTab === 'my'
-                        ? 'Join a club from Explore or create your own.'
-                        : 'Try a different activity filter.'}
-                    </p>
-                    {clubsTab === 'my' && (
-                      <div className="is-flex mt-5" style={{ gap: '10px' }}>
-                        <button className="button is-fullwidth" style={{ borderRadius: '12px', fontWeight: 700 }} onClick={() => setClubsTab('explore')}>
-                          Explore
-                        </button>
-                        <button className="button rr-btn-green is-fullwidth" style={{ borderRadius: '12px' }} onClick={() => setClubsTab('create')}>
-                          Create Club
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+  <div className="container px-4 mt-5">
+    <div className="rr-card has-text-centered py-6">
+      <p style={{ fontSize: '3rem' }}>🏛️</p>
+      <h3 className="title is-5 mt-3" style={{ fontWeight: 800 }}>
+        {clubsTab === 'my' ? 'No clubs yet' : 'No clubs found'}
+      </h3>
+      <p className="has-text-grey" style={{ lineHeight: 1.6 }}>
+        {clubsTab === 'my'
+          ? 'Join a club from Explore or create your own.'
+          : 'Try a different activity filter.'}
+      </p>
+      {clubsTab === 'my' && (
+        <div className="is-flex mt-5 is-justify-content-center" style={{ gap: '10px' }}>
+          <button className="button" style={{ borderRadius: '12px', fontWeight: 700 }} onClick={() => setClubsTab('explore')}>
+            Explore
+          </button>
+          <button className="button rr-btn-green" style={{ borderRadius: '12px' }} onClick={() => setClubsTab('create')}>
+            Create Club
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
 
               {(clubsTab === 'my' ? myClubs : filteredClubs).map((club) => (
                 <ClubCard key={club.id} club={club} onOpenDetails={(c) => setSelectedClub(c)} />
@@ -854,6 +926,10 @@ useEffect(() => {
               <div className="is-flex is-justify-content-space-between">
                 <span className="has-text-grey">Distance</span>
                 <span className="has-text-weight-semibold">{selectedRide.distance}</span>
+              </div>
+              <div className="is-flex is-justify-content-space-between">
+                <span className="has-text-grey">Duration</span>
+                <span className="has-text-weight-semibold">{selectedRide.duration} min</span>
               </div>
             </div>
           </div>
