@@ -26,6 +26,8 @@ class User extends Authenticatable implements \PHPOpenSourceSaver\JWTAuth\Contra
         'location',
         'activities',
         'avatar',
+        'latitude',
+        'longitude',
     ];
 
     /**
