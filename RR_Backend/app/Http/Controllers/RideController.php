@@ -12,7 +12,7 @@ class RideController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ride::with('organizer');
+        $query = Ride::with('organizer', 'club');
 
         if ($request->has('activity_type')) {
             $query->where('activity_type', $request->activity_type);
@@ -101,7 +101,7 @@ class RideController extends Controller
 
     public function show($id)
     {
-        $ride = Ride::with('organizer', 'participants')->findOrFail($id);
+        $ride = Ride::with('organizer', 'participants', 'club')->findOrFail($id);
         return response()->json($ride);
     }
 
@@ -152,35 +152,42 @@ class RideController extends Controller
         ]);
     }
     public function leave($id)
-{
-    $ride = Ride::findOrFail($id);
-    $ride->participants()->detach(auth()->id());
+    {
+        $ride = Ride::findOrFail($id);
 
-    return response()->json([
-        'message' => 'Left ride successfully',
-    ]);
-}
-public function nearby(Request $request)
-{
-    $request->validate([
-        'latitude' => 'required|numeric',
-        'longitude' => 'required|numeric',
-        'radius' => 'nullable|numeric',
-    ]);
+        if ($ride->user_id === auth()->id()) {
+            return response()->json([
+                'message' => 'You are the owner, you cannot leave. Delete the ride instead.',
+            ], 422);
+        }
 
-    $lat = $request->latitude;
-    $lng = $request->longitude;
-    $radius = $request->radius ?? 10; // كم افتراضي
+        $ride->participants()->detach(auth()->id());
 
-    $rides = Ride::with('organizer')
-        ->whereNotNull('latitude')
-        ->whereNotNull('longitude')
-        ->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance_km", [$lat, $lng, $lat])
-        ->having('distance_km', '<=', $radius)
-        ->orderBy('distance_km')
-        ->get();
+        return response()->json([
+            'message' => 'Left ride successfully',
+        ]);
+    }
+    public function nearby(Request $request)
+    {
+        $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'radius' => 'nullable|numeric',
+        ]);
 
-    return response()->json($rides);
-}
+        $lat = $request->latitude;
+        $lng = $request->longitude;
+        $radius = $request->radius ?? 10; // كم افتراضي
+
+        $rides = Ride::with('organizer')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance_km", [$lat, $lng, $lat])
+            ->having('distance_km', '<=', $radius)
+            ->orderBy('distance_km')
+            ->get();
+
+        return response()->json($rides);
+    }
 }
 

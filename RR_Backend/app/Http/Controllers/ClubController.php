@@ -99,12 +99,19 @@ class ClubController extends Controller
         ]);
     }
     public function leave($id)
-{
-    $club = Club::findOrFail($id);
-    $club->members()->detach(auth()->id());
+    {
+        $club = Club::findOrFail($id);
 
-    return response()->json([
-        'message' => 'Left club successfully',
-    ]);
-}
+        if ($club->user_id === auth()->id()) {
+            return response()->json([
+                'message' => 'You are the owner, you cannot leave. Delete the club instead.',
+            ], 422);
+        }
+
+        $club->members()->detach(auth()->id());
+
+        return response()->json([
+            'message' => 'Left club successfully',
+        ]);
+    }
 }
