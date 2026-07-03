@@ -29,6 +29,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/rides/{id}/join', [RideController::class, 'join']);
     Route::post('/rides/{id}/leave', [RideController::class, 'leave']);
     Route::apiResource('rides', RideController::class);
+    Route::get('/rides/{id}/requests', [RideController::class, 'requests']);
+    Route::post('/rides/{rideId}/accept/{userId}', [RideController::class, 'acceptRequest']);
+    Route::post('/rides/{rideId}/reject/{userId}', [RideController::class, 'rejectRequest']);
 
     // Clubs
     Route::apiResource('clubs', ClubController::class);

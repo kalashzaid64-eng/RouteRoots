@@ -139,16 +139,25 @@ class RideController extends Controller
     public function join($id)
     {
         $ride = Ride::findOrFail($id);
-        $ride->participants()->attach(auth()->id());
 
-        NotificationService::send($ride->user_id, 'ride_joined', [
+        $alreadyJoined = $ride->participants()->where('user_id', auth()->id())->exists();
+
+        if ($alreadyJoined) {
+            return response()->json([
+                'message' => 'You already requested to join this ride',
+            ], 422);
+        }
+
+        $ride->participants()->attach(auth()->id(), ['status' => 'pending']);
+
+        NotificationService::send($ride->user_id, 'ride_join_request', [
             'ride_id' => $ride->id,
             'title' => $ride->title,
-            'joined_by' => auth()->user()->name,
+            'requested_by' => auth()->user()->name,
         ]);
 
         return response()->json([
-            'message' => 'Joined ride successfully',
+            'message' => 'Join request sent successfully',
         ]);
     }
     public function leave($id)
@@ -188,6 +197,57 @@ class RideController extends Controller
             ->get();
 
         return response()->json($rides);
+    }
+
+    public function requests($id)
+    {
+        $ride = Ride::findOrFail($id);
+
+        if ($ride->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $requests = $ride->participants()
+            ->wherePivot('status', 'pending')
+            ->get();
+
+        return response()->json($requests);
+    }
+
+    public function acceptRequest($rideId, $userId)
+    {
+        $ride = Ride::findOrFail($rideId);
+
+        if ($ride->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $ride->participants()->updateExistingPivot($userId, ['status' => 'accepted']);
+
+        NotificationService::send($userId, 'ride_request_accepted', [
+            'ride_id' => $ride->id,
+            'title' => $ride->title,
+        ]);
+
+        return response()->json(['message' => 'Request accepted successfully']);
+    }
+
+    public function rejectRequest($rideId, $userId)
+    {
+        $ride = Ride::findOrFail($rideId);
+
+        if ($ride->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $ride->participants()->updateExistingPivot($userId, ['status' => 'rejected']);
+
+        NotificationService::send($userId, 'ride_request_rejected', [
+            'ride_id' => $ride->id,
+            'title' => $ride->title,
+        ]);
+
+        return response()->json(['message' => 'Request rejected successfully']);
     }
 }
 
