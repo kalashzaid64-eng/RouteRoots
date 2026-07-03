@@ -33,7 +33,7 @@ export const MarketBanner = ({ recommendations = [] }) => (
 );
 
 
-export const MarketHeader = ({ activeCategory, setActiveCategory, onOpenCart, cartCount = 0 }) => {
+export const MarketHeader = ({ activeCategory, setActiveCategory, onOpenCart, cartCount = 0, searchValue = '', onSearch }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const categories = [
@@ -54,7 +54,9 @@ export const MarketHeader = ({ activeCategory, setActiveCategory, onOpenCart, ca
         <span className="icon is-left" style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', left: '1rem', color: '#757575' }}>
           <Search size={18} />
         </span>
-        <input className="market-search-bar" type="text" placeholder="Search products..." />
+        <input 
+  className="market-search-bar" type="text" placeholder="Search products..."value={searchValue ?? ''}onChange={(e) => onSearch?.(e.target.value)}/>
+
       </div>
 
       <div className="columns is-mobile is-variable is-2 mb-4">

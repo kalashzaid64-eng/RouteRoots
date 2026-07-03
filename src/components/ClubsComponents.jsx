@@ -1,32 +1,31 @@
 import React from 'react';
 import { Search, Users, Plus, MapPin, Star, ChevronRight } from 'lucide-react';
 
-export const ClubsHeader = ({ activeTab = 'explore', setActiveTab, activeType = 'all', setActiveType }) => (
+export const ClubsHeader = ({ activeTab = 'explore', setActiveTab, activeType = 'all', setActiveType, searchValue = '', onSearch  }) => (
   <div className="clubs-header">
-    <div className="is-flex is-justify-content-space-between is-align-items-center mb-4">
-      <div className="buttons has-addons mb-0" style={{ flex: 1 }}>
-        <button
-          className={`button ${activeTab === 'explore' ? 'is-active' : ''}`}
-          style={{ flex: 1, backgroundColor: activeTab === 'explore' ? 'var(--primary-green)' : '#F0F0F0', color: activeTab === 'explore' ? 'white' : '#666', border: 'none' }}
-          onClick={() => setActiveTab?.('explore')}
-        >
-          <Search size={18} className="mr-2" /> Explore
-        </button>
-        <button
-          className={`button ${activeTab === 'my' ? 'is-active' : ''}`}
-          style={{ flex: 1, backgroundColor: activeTab === 'my' ? 'var(--primary-green)' : '#F0F0F0', color: activeTab === 'my' ? 'white' : '#666', border: 'none' }}
-          onClick={() => setActiveTab?.('my')}
-        >
-          <Users size={18} className="mr-2" /> My Clubs
-        </button>
+    <div className="clubs-header-top mb-4">
+    <div className="buttons has-addons mb-0 clubs-tab-group">
+    <button
+  className={`button clubs-tab-btn ${activeTab === 'explore' ? 'is-active' : ''}`}
+  onClick={() => setActiveTab?.('explore')}
+>
+  <Search size={18} className="mr-2" /> Explore
+</button>
+<button
+  className={`button clubs-tab-btn ${activeTab === 'my' ? 'is-active' : ''}`}
+  onClick={() => setActiveTab?.('my')}
+>
+  <Users size={18} className="mr-2" /> My Clubs
+</button>
+
       </div>
       <button
-        className="button ml-3"
-        style={{ backgroundColor: activeTab === 'create' ? '#1B5E20' : 'var(--primary-green)', color: 'white', borderRadius: '12px', border: 'none', fontWeight: 600 }}
-        onClick={() => setActiveTab?.('create')}
-      >
-        <Plus size={18} className="mr-1" /> Create Club
-      </button>
+  className="button clubs-create-btn"
+  onClick={() => setActiveTab?.('create')}
+>
+  <Plus size={18} className="mr-1" /> Create Club
+</button>
+
     </div>
 
     {activeTab !== 'create' && (
@@ -35,7 +34,15 @@ export const ClubsHeader = ({ activeTab = 'explore', setActiveTab, activeType = 
           <span className="icon is-left" style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', color: '#999' }}>
             <Search size={18} />
           </span>
-          <input className="input" type="text" placeholder="Search clubs by name, location, or activity" />
+          <input
+  className="input rr-search-input"
+  type="text"
+  placeholder="Search clubs by name, location, or activity"
+  value={searchValue}
+  onChange={(e) => onSearch?.(e.target.value)}
+/>
+
+
         </div>
 
         <div className="is-flex is-align-items-center mt-4" style={{ gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>

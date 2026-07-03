@@ -227,9 +227,22 @@ function App() {
   const [currentTab, setCurrentTab] = useState('home');
   const [marketCategory, setMarketCategory] = useState('all');
   const [products, setProducts] = useState([]);
+  const [productSearch, setProductSearch] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [createRideClubId, setCreateRideClubId] = useState(null);
+  const [createRideForm, setCreateRideForm] = useState({
+    title: '',
+    activity_type: 'Running',
+    location: '',
+    distance: '',
+    fee: 0,
+    ride_date: '',
+    duration: '',
+  });
+  const [isCreatingRide, setIsCreatingRide] = useState(false);
+  
   const [profileStats, setProfileStats] = useState({
     total_rides: 0,
     total_distance: '0',
@@ -377,6 +390,7 @@ useEffect(() => {
   const [clubsData, setClubsData] = useState(MOCK_CLUBS);
   const [achievements, setAchievements] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
+  const [clubSearch, setClubSearch] = useState('');
   const [createClubForm, setCreateClubForm] = useState({
     name: '',
     type: 'Running',
@@ -395,10 +409,19 @@ useEffect(() => {
   const [cartItems, setCartItems] = useState([]);
 
   const filteredProducts = useMemo(() => {
-  return marketCategory === 'all'
-    ? products
-    : products.filter((p) => p.category.toLowerCase() === marketCategory);
-  }, [marketCategory, products]);
+    let result = marketCategory === 'all' 
+      ? products 
+      : products.filter((p) => p.category.toLowerCase() === marketCategory);
+    
+    if (productSearch.trim()) {
+      result = result.filter((p) => 
+        p.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
+        p.category?.toLowerCase().includes(productSearch.toLowerCase())
+      );
+    }
+    
+    return result;
+  }, [marketCategory, products, productSearch]);  
 
 
   const filteredRides = useMemo(() => {
@@ -410,13 +433,23 @@ useEffect(() => {
   
 
   const filteredClubs = useMemo(() => {
-    return clubTypeFilter === 'all' 
+    let clubs = clubTypeFilter === 'all' 
       ? clubsData 
       : clubsData.filter((c) => {
           const type = c.activity_type || c.type;
           return type?.toLowerCase() === clubTypeFilter.toLowerCase();
         });
-  }, [clubTypeFilter, clubsData]);
+    
+    if (clubSearch.trim()) {
+      clubs = clubs.filter((c) => 
+        c.name?.toLowerCase().includes(clubSearch.toLowerCase()) ||
+        c.description?.toLowerCase().includes(clubSearch.toLowerCase())
+      );
+    }
+    
+    return clubs;
+  }, [clubTypeFilter, clubsData, clubSearch]);
+  
   
   
 
@@ -682,14 +715,17 @@ useEffect(() => {
       {isAuthenticated && currentTab === 'clubs' && (
         <>
           <ClubsHeader
-            activeTab={clubsTab}
-            setActiveTab={(tab) => {
-              setClubsTab(tab);
-              if (tab === 'create') setClubTypeFilter('all');
-            }}
-            activeType={clubTypeFilter}
-            setActiveType={setClubTypeFilter}
-          />
+  activeTab={clubsTab}
+  setActiveTab={(tab) => {
+    setClubsTab(tab);
+    if (tab === 'create') setClubTypeFilter('all');
+  }}
+  activeType={clubTypeFilter}
+  setActiveType={setClubTypeFilter}
+  searchValue={clubSearch}
+  onSearch={setClubSearch}
+/>
+
 
           {clubsTab === 'create' && (
             <div className="container px-4 mt-5">
@@ -775,6 +811,7 @@ useEffect(() => {
                     
                         setClubsData((prev) => [newClub, ...prev]);
                         setJoinedClubIds((prev) => [...prev, newClub.id]);
+                        // await api.post(`/clubs/${response.data.id}/join`);
                         setCreateClubForm({ name: '', type: 'Running', description: '', location: '' });
                         setClubsTab('my');
                         setSelectedClub(newClub);
@@ -833,6 +870,8 @@ useEffect(() => {
       {isAuthenticated && currentTab === 'market' && (
         <>
           <MarketHeader
+            searchValue={productSearch}
+            onSearch={setProductSearch}          
             activeCategory={marketCategory}
             setActiveCategory={setMarketCategory}
             onOpenCart={() => setIsCartOpen(true)}
@@ -944,14 +983,26 @@ useEffect(() => {
           selectedClub ? (
             <div className="is-flex is-justify-content-space-between is-align-items-center" style={{ width: '100%', gap: '12px' }}>
               <div className="has-text-grey-dark">
-              <span className="has-text-weight-semibold">{selectedClub.members_count ?? 0}</span> members
+                <span className="has-text-weight-semibold">{selectedClub.members_count ?? 0}</span> members
               </div>
-              <button className="button rr-btn-green" onClick={() => toggleJoinClub(selectedClub)}>
-                {joinedClubIds.includes(selectedClub.id) ? 'Leave Club' : 'Join Club'}
-              </button>
+              <div className="is-flex" style={{ gap: '8px' }}>
+                {joinedClubIds.includes(selectedClub.id) && (
+                  <button className="button" onClick={() => {
+                    const clubId = selectedClub.id;
+                    setSelectedClub(null);
+                    setCreateRideClubId(clubId);
+                  }}>
+                    Create Ride
+                  </button>
+                )}
+                <button className="button rr-btn-green" onClick={() => toggleJoinClub(selectedClub)}>
+                  {joinedClubIds.includes(selectedClub.id) ? 'Leave Club' : 'Join Club'}
+                </button>
+              </div>
             </div>
           ) : null
         }
+        
       >
         {selectedClub && (
           <div>
@@ -1139,6 +1190,76 @@ useEffect(() => {
           </div>
         </div>
       </Modal>
+      <Modal
+  isOpen={Boolean(createRideClubId)}
+  title="Create Ride"
+  onClose={() => setCreateRideClubId(null)}
+  footer={
+    <button className="button rr-btn-green" onClick={async () => {
+      setIsCreatingRide(true);
+      try {
+        const response = await api.post('/rides', {
+          club_id: createRideClubId,
+          title: createRideForm.title,
+          activity_type: createRideForm.activity_type.toLowerCase(),
+          location: createRideForm.location,
+          distance: parseFloat(createRideForm.distance),
+          fee: parseFloat(createRideForm.fee),
+          ride_date: createRideForm.ride_date,
+          duration: parseInt(createRideForm.duration),
+          latitude: 33.5138,
+          longitude: 36.2765,
+        });
+        const ridesResponse = await api.get('/rides');
+        setRides(ridesResponse.data);
+        setCreateRideClubId(null);
+        setCreateRideForm({ title: '', activity_type: 'Running', location: '', distance: '', fee: 0, ride_date: '', duration: '' });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsCreatingRide(false);
+      }
+    }} disabled={isCreatingRide}>
+      {isCreatingRide ? 'Creating...' : 'Create Ride'}
+    </button>
+  }
+>
+  <div className="mb-4">
+    <label className="settings-label">Title</label>
+    <input className="settings-input" type="text" value={createRideForm.title} onChange={(e) => setCreateRideForm(prev => ({ ...prev, title: e.target.value }))} />
+  </div>
+  <div className="mb-4">
+    <label className="settings-label">Activity</label>
+    <div className="select is-fullwidth">
+      <select className="settings-input" value={createRideForm.activity_type} onChange={(e) => setCreateRideForm(prev => ({ ...prev, activity_type: e.target.value }))}>
+        <option value="Running">Running</option>
+        <option value="Cycling">Cycling</option>
+        <option value="Skating">Skating</option>
+      </select>
+    </div>
+  </div>
+  <div className="mb-4">
+    <label className="settings-label">Location</label>
+    <input className="settings-input" type="text" value={createRideForm.location} onChange={(e) => setCreateRideForm(prev => ({ ...prev, location: e.target.value }))} />
+  </div>
+  <div className="mb-4">
+    <label className="settings-label">Distance (km)</label>
+    <input className="settings-input" type="number" value={createRideForm.distance} onChange={(e) => setCreateRideForm(prev => ({ ...prev, distance: e.target.value }))} />
+  </div>
+  <div className="mb-4">
+    <label className="settings-label">Fee ($)</label>
+    <input className="settings-input" type="number" value={createRideForm.fee} onChange={(e) => setCreateRideForm(prev => ({ ...prev, fee: e.target.value }))} />
+  </div>
+  <div className="mb-4">
+    <label className="settings-label">Date & Time</label>
+    <input className="settings-input" type="datetime-local" value={createRideForm.ride_date} onChange={(e) => setCreateRideForm(prev => ({ ...prev, ride_date: e.target.value }))} />
+  </div>
+  <div className="mb-4">
+    <label className="settings-label">Duration (minutes)</label>
+    <input className="settings-input" type="number" value={createRideForm.duration} onChange={(e) => setCreateRideForm(prev => ({ ...prev, duration: e.target.value }))} />
+  </div>
+</Modal>
+
     </Layout>
   );
 }
@@ -1165,6 +1286,7 @@ const Modal = ({ isOpen, title, onClose, children, footer }) => {
     </div>
   );
 };
+
 
 
 export default App;

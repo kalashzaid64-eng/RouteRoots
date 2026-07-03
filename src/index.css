@@ -183,6 +183,22 @@ h1, h2, h3, h4, h5, h6, p {
   height: 2.5rem;
   left: 0.5rem;
 }
+.rr-search-input {
+  background-color: #F0F0F0 !important;
+  border: 1px solid #E0E0E0 !important;
+  color: #333 !important;
+}
+
+.rr-search-input::placeholder {
+  color: #999;
+}
+
+.rr-search-input:focus {
+  background-color: white !important;
+  border-color: var(--primary-green) !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.15) !important;
+}
+
 
 .club-card {
   background-color: var(--white);
@@ -738,3 +754,53 @@ input:checked + .slider:before {
 }
 
 .gap-2 { gap: 0.5rem; }
+.clubs-header-top {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clubs-tab-group {
+  display: flex;
+  width: 100%;
+  gap: 6px;
+}
+
+/* .clubs-tab-btn {
+  flex: 1;
+  background-color: #F0F0F0;
+  color: #666;
+  border: none;
+}
+
+.clubs-tab-btn.is-active {
+  background-color: var(--primary-green);
+  color: white;
+} */
+.clubs-tab-btn {
+  flex: 1;
+  background-color: #D9D9D9;
+  color: #555;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.clubs-tab-btn:hover {
+  background-color: #CACACA;
+}
+
+.clubs-tab-btn.is-active {
+  background-color: var(--primary-green);
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.clubs-create-btn {
+  width: 100%;
+  background-color: var(--primary-green);
+  color: white;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+}
