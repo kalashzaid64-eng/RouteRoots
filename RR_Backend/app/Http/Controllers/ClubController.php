@@ -10,8 +10,8 @@ class ClubController extends Controller
 {
     public function index()
     {
-    $clubs = Club::with('creator')->withCount('members')->get();
-    return response()->json($clubs);
+        $clubs = Club::with('creator', 'members')->withCount('members')->get();
+        return response()->json($clubs);
     }
 
 
