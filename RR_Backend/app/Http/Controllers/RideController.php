@@ -39,12 +39,11 @@ class RideController extends Controller
 
         $club = Club::findOrFail($request->club_id);
 
-        $isMember = $club->members()->where('user_id', auth()->id())->exists();
         $isOwner = $club->user_id === auth()->id();
 
-        if (!$isMember && !$isOwner) {
+        if (!$isOwner) {
             return response()->json([
-                'message' => 'You must be a member or owner of this club to create a ride',
+                'message' => 'only the club owner can create a ride',
             ], 403);
         }
 

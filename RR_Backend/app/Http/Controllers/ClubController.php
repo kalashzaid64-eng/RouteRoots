@@ -34,6 +34,8 @@ class ClubController extends Controller
             'rating' => $request->rating,
         ]);
 
+        $club->members()->attach(auth()->id()); // ← هون بس
+
         return response()->json([
             'message' => 'Club created successfully',
             'club' => $club,
@@ -81,13 +83,16 @@ class ClubController extends Controller
     public function join($id)
     {
         $club = Club::findOrFail($id);
+        
+        $alreadyMember = $club->members()->where('user_id', auth()->id())->exists();
+        
+        if ($alreadyMember) {
+            return response()->json([
+                'message' => 'You are already a member of this club',
+            ], 422);
+        }
+        
         $club->members()->attach(auth()->id());
-
-        NotificationService::send($club->user_id, 'club_joined', [
-            'club_id' => $club->id,
-            'name' => $club->name,
-            'joined_by' => auth()->user()->name,
-        ]);
 
         return response()->json([
             'message' => 'Joined club successfully',
