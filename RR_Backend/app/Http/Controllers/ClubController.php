@@ -93,6 +93,9 @@ class ClubController extends Controller
         }
         
         $club->members()->attach(auth()->id());
+        
+        \App\Services\AchievementService::check(auth()->id());
+
 
         return response()->json([
             'message' => 'Joined club successfully',

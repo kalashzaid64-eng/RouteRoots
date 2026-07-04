@@ -9,6 +9,7 @@ class RideSeeder extends Seeder
 {
     public function run(): void
     {
+        // دمشق - قريبة
         Ride::create([
             'user_id' => 1,
             'club_id' => 1,
@@ -19,8 +20,8 @@ class RideSeeder extends Seeder
             'fee' => 0,
             'ride_date' => '2025-01-10 07:00:00',
             'duration' => 60,
-            'latitude' => 33.5138,
-            'longitude' => 36.2765,
+            'latitude' => 33.5020,
+            'longitude' => 36.2520,
         ]);
 
         Ride::create([
@@ -28,13 +29,13 @@ class RideSeeder extends Seeder
             'club_id' => 1,
             'title' => 'Evening Cycling',
             'activity_type' => 'cycling',
-            'location' => 'Damascus - Abu Rummaneh',
+            'location' => 'Damascus - Kafr Sousa',
             'distance' => 20,
             'fee' => 500,
             'ride_date' => '2026-07-05 18:00:00',
             'duration' => 90,
-            'latitude' => 33.5100,
-            'longitude' => 36.2800,
+            'latitude' => 33.4950,
+            'longitude' => 36.2600,
         ]);
 
         Ride::create([
@@ -47,8 +48,8 @@ class RideSeeder extends Seeder
             'fee' => 0,
             'ride_date' => '2026-07-12 10:00:00',
             'duration' => 45,
-            'latitude' => 33.5200,
-            'longitude' => 36.2700,
+            'latitude' => 33.5138,
+            'longitude' => 36.2765,
         ]);
 
         Ride::create([
@@ -65,18 +66,34 @@ class RideSeeder extends Seeder
             'longitude' => 36.2900,
         ]);
 
+        // حلب - بعيدة
         Ride::create([
             'user_id' => 2,
-            'club_id' => 3,
-            'title' => 'Cycling Tour',
+            'club_id' => 2,
+            'title' => 'Aleppo Cycling Tour',
             'activity_type' => 'cycling',
-            'location' => 'Damascus - Kafr Sousa',
-            'distance' => 15,
-            'fee' => 300,
+            'location' => 'Aleppo - City Center',
+            'distance' => 25,
+            'fee' => 1000,
+            'ride_date' => '2026-07-20 09:00:00',
+            'duration' => 120,
+            'latitude' => 36.2021,
+            'longitude' => 37.1343,
+        ]);
+
+        // اللاذقية - بعيدة
+        Ride::create([
+            'user_id' => 1,
+            'club_id' => 3,
+            'title' => 'Latakia Skate',
+            'activity_type' => 'skating',
+            'location' => 'Latakia - Corniche',
+            'distance' => 12,
+            'fee' => 500,
             'ride_date' => '2026-07-25 17:00:00',
             'duration' => 80,
-            'latitude' => 33.5050,
-            'longitude' => 36.2600,
+            'latitude' => 35.5317,
+            'longitude' => 35.7915,
         ]);
     }
 }

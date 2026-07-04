@@ -30,6 +30,8 @@ class ActivityController extends Controller
             'date' => $request->date,
         ]);
 
+        \App\Services\AchievementService::check(auth()->id());
+
         return response()->json([
             'message' => 'Activity created successfully',
             'activity' => $activity,

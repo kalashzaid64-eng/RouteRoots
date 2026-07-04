@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
             ClubSeeder::class,
             RideSeeder::class,
             ProductSeeder::class,
+            AchievementSeeder::class,
+            ActivitySeeder::class,
         ]);
     }
 }

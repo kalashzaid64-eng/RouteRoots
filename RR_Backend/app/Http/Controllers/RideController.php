@@ -19,8 +19,17 @@ class RideController extends Controller
         }
 
         $rides = $query->get();
+
+        $userId = auth()->id();
+
+        $rides = $rides->map(function ($ride) use ($userId) {
+            $ride->is_joined = $ride->participants()->where('user_id', $userId)->exists();
+            return $ride;
+        });
+
         return response()->json($rides);
     }
+
 
     public function store(Request $request)
     {
@@ -186,7 +195,7 @@ class RideController extends Controller
 
         $lat = $request->latitude;
         $lng = $request->longitude;
-        $radius = $request->radius ?? 10; // كم افتراضي
+        $radius = $request->radius ?? 15; // كم افتراضي
 
         $rides = Ride::with('organizer')
             ->whereNotNull('latitude')
@@ -224,6 +233,17 @@ class RideController extends Controller
 
         $ride->participants()->updateExistingPivot($userId, ['status' => 'accepted']);
 
+        // إضافة activity تلقائياً
+        \App\Models\Activity::create([
+            'user_id' => $userId,
+            'type' => $ride->activity_type,
+            'distance' => $ride->distance,
+            'duration' => $ride->duration ?? 0,
+            'date' => now()->toDateString(),
+        ]);
+
+        \App\Services\AchievementService::check($userId);
+
         NotificationService::send($userId, 'ride_request_accepted', [
             'ride_id' => $ride->id,
             'title' => $ride->title,
@@ -231,6 +251,7 @@ class RideController extends Controller
 
         return response()->json(['message' => 'Request accepted successfully']);
     }
+
 
     public function rejectRequest($rideId, $userId)
     {
