@@ -262,6 +262,7 @@ function App() {
         const response = await api.get('/me');
         const {data} = response;
         setUser({
+          id: data.id,
           name: data.name ?? '',
           email: data.email ?? '' ,
           location: data.location ?? '',
@@ -294,8 +295,16 @@ function App() {
 useEffect(() => {
   const fetchClubs = async () => {
     try {
-      const response = await api.get('/clubs');
-      setClubsData(response.data);
+      const [clubsResponse, meResponse] = await Promise.all([
+        api.get('/clubs'),
+        api.get('/me')
+      ]);
+      const currentUserId = meResponse.data.id;
+      setClubsData(clubsResponse.data);
+      const joinedIds = clubsResponse.data
+        .filter(c => c.members?.some(m => m.id === currentUserId))
+        .map(c => c.id);
+      setJoinedClubIds(joinedIds);
     } catch (err) {}
   };
 
@@ -303,6 +312,7 @@ useEffect(() => {
     fetchClubs();
   }
 }, [isAuthenticated]);
+
 
 useEffect(() => {
   const fetchRides = async () => {
@@ -930,14 +940,29 @@ useEffect(() => {
           selectedRide ? (
             <div className="is-flex is-justify-content-space-between is-align-items-center" style={{ width: '100%', gap: '12px' }}>
               <div className="has-text-weight-bold" style={{ color: 'var(--primary-green)' }}>
-                {selectedRide.fee === 'Free' ? 'Free' : `$ ${selectedRide.fee}`}
+                {selectedRide.fee === '0.00' || selectedRide.fee === 0 ? 'Free' : `$ ${selectedRide.fee}`}
               </div>
-              <button className="button rr-btn-green" onClick={() => toggleJoinRide(selectedRide)}>
-                {joinedRideIds.includes(selectedRide.id) ? 'Leave Ride' : 'Join Ride'}
-              </button>
+              <div className="is-flex" style={{ gap: '8px' }}>
+                {Number(selectedRide?.organizer?.id) === Number(user?.id) ? (
+                  <button className="button is-danger" onClick={async () => {
+                    try {
+                      await api.delete(`/rides/${selectedRide.id}`);
+                      setRides(prev => prev.filter(r => r.id !== selectedRide.id));
+                      setSelectedRide(null);
+                    } catch (err) {}
+                  }}>
+                    Delete Ride
+                  </button>
+                ) : (
+                  <button className="button rr-btn-green" onClick={() => toggleJoinRide(selectedRide)}>
+                    {joinedRideIds.includes(selectedRide.id) ? 'Leave Ride' : 'Join Ride'}
+                  </button>
+                )}
+              </div>
             </div>
           ) : null
         }
+        
       >
         {selectedRide && (
           <div>
@@ -986,22 +1011,40 @@ useEffect(() => {
                 <span className="has-text-weight-semibold">{selectedClub.members_count ?? 0}</span> members
               </div>
               <div className="is-flex" style={{ gap: '8px' }}>
-                {joinedClubIds.includes(selectedClub.id) && (
-                  <button className="button" onClick={() => {
-                    const clubId = selectedClub.id;
-                    setSelectedClub(null);
-                    setCreateRideClubId(clubId);
-                  }}>
-                    Create Ride
+                {Number(selectedClub?.creator?.id) === Number(user?.id) ? (
+                  <>
+                    <button className="button" onClick={() => {
+                      const clubId = selectedClub.id;
+                      setSelectedClub(null);
+                      setCreateRideClubId(clubId);
+                    }}>
+                      Create Ride
+                    </button>
+                    <button className="button is-danger" onClick={async () => {
+                      try {
+                        await api.delete(`/clubs/${selectedClub.id}`);
+                        setClubsData(prev => prev.filter(c => c.id !== selectedClub.id));
+                        setJoinedClubIds(prev => prev.filter(id => id !== selectedClub.id));
+                        setSelectedClub(null);
+                      } catch (err) {}
+                    }}>
+                      Delete Club
+                    </button>
+                  </>
+                ) : joinedClubIds.includes(selectedClub.id) ? (
+                  <button className="button rr-btn-green" onClick={() => toggleJoinClub(selectedClub)}>
+                    Leave Club
+                  </button>
+                ) : (
+                  <button className="button rr-btn-green" onClick={() => toggleJoinClub(selectedClub)}>
+                    Join Club
                   </button>
                 )}
-                <button className="button rr-btn-green" onClick={() => toggleJoinClub(selectedClub)}>
-                  {joinedClubIds.includes(selectedClub.id) ? 'Leave Club' : 'Join Club'}
-                </button>
               </div>
             </div>
           ) : null
         }
+        
         
       >
         {selectedClub && (
@@ -1267,14 +1310,14 @@ useEffect(() => {
 const Modal = ({ isOpen, title, onClose, children, footer }) => {
   if (!isOpen) return null;
   return (
-    <div className="modal is-active">
+    <div className="modal is-active" style={{ alignItems: 'center', justifyContent: 'center' }}>
       <div className="modal-background" onClick={onClose}></div>
-      <div className="modal-card" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+      <div className="modal-card" style={{ borderRadius: '16px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
         <header className="modal-card-head" style={{ borderBottom: '1px solid #EEE' }}>
           <p className="modal-card-title" style={{ fontWeight: 800 }}>{title}</p>
           <button className="delete" aria-label="close" onClick={onClose}></button>
         </header>
-        <section className="modal-card-body" style={{ background: 'white' }}>
+        <section className="modal-card-body" style={{ background: 'white', overflowY: 'auto', flex: 1 }}>
           {children}
         </section>
         {footer && (

@@ -804,3 +804,51 @@ input:checked + .slider:before {
   border: none;
   font-weight: 600;
 }
+/* Lighten the modal overlay (Bulma default is too dark) */
+.modal-background {
+  background-color: rgba(10, 10, 10, 0.45) !important;
+}
+
+/* Fix the select dropdown to match text inputs */
+.select select.settings-input,
+select.settings-input {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-color: #F9FAFB !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 36px !important;
+  color: #333 !important;
+  border: 1px solid var(--border-gray) !important;
+  cursor: pointer;
+}
+.modal.is-active {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px;
+}
+
+.modal .modal-card {
+  margin: auto !important;
+  width: 90%;
+  max-width: 480px;
+}
+.modal.is-active {
+  align-items: center;
+  justify-content: center;
+}
+
+.modal .modal-card,
+.modal .modal-content {
+  margin: 0 !important;
+  max-height: 85vh !important;
+  width: 90%;
+  max-width: 480px;
+}
+.modal.is-active {
+  padding-top: 70px;
+  padding-bottom: 72px;
+}

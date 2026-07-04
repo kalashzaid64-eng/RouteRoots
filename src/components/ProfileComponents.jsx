@@ -58,7 +58,7 @@ export const ProfileHeader = ({ user, onEditProfile, selectedActivities = [] , o
       <div className="container px-5">
         <div className="is-flex is-justify-content-between is-align-items-start mb-4">
           <div>
-            <h1 className="title is-3 mb-1" style={{ fontWeight: 800 }}>{user?.name ?? 'John Doe'}</h1>
+            <h1 className="title is-3 mb-1" style={{ fontWeight: 800,color:'black' }}>{user?.name ?? 'John Doe'}</h1>
             <div className="is-flex is-align-items-center gap-1 has-text-grey" style={{ fontSize: '0.95rem' }}>
               <MapPin size={16} /> {user?.location ?? 'San Francisco, CA'}
             </div>

@@ -77,7 +77,7 @@ const Layout = ({ children, currentTab, setCurrentTab, hideBottomNav = false, un
               <div key={n.id} style={{
                 padding: '1rem',
                 borderBottom: '1px solid #F0F0F0',
-                background: n.is_read ? 'white' : '#E8F5E9',
+                background: n.is_read == true || n.is_read === 1 ? 'white' : '#E8F5E9',
                 cursor: 'pointer'
               }} onClick={() => onMarkAsRead?.(n.id)}>
                 <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{n.data?.title ?? n.type}</p>
