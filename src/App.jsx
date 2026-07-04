@@ -320,9 +320,12 @@ useEffect(() => {
       const response = await api.get('/rides');
       const data = Array.isArray(response.data) ? response.data : response.data.data ?? [];
       setRides(data);
+      const joinedIds = data
+        .filter(r => r.is_joined)
+        .map(r => r.id);
+      setJoinedRideIds(joinedIds);
     } catch (err) {}
   };
-  
 
   if (isAuthenticated) {
     fetchRides();
@@ -393,7 +396,7 @@ useEffect(() => {
 
 
 
-
+const [isNearbyMode, setIsNearbyMode] = useState(false);
   const [rideTypeFilter, setRideTypeFilter] = useState('all');
   const [clubTypeFilter, setClubTypeFilter] = useState('all');
   const [clubsTab, setClubsTab] = useState('explore');
@@ -409,6 +412,8 @@ useEffect(() => {
   });
 
   const [selectedRide, setSelectedRide] = useState(null);
+  const [rideRequests, setRideRequests] = useState([]);
+  const [showRideRequests, setShowRideRequests] = useState(false);
   const [selectedClub, setSelectedClub] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -510,18 +515,27 @@ useEffect(() => {
     }
   };
   const findNearbyRides = () => {
-    console.log('finding nearby rides...');
     navigator.geolocation.getCurrentPosition(async (position) => {
-      console.log('got position', position.coords);
       try {
         const { latitude, longitude } = position.coords;
-        const response = await api.get(`/rides/nearby?latitude=${latitude}&longitude=${longitude}&radius=10`);
+        const response = await api.get(`/rides/nearby?latitude=${latitude}&longitude=${longitude}&radius=15`);
         setRides(response.data);
+        setIsNearbyMode(true);
       } catch (err) {
         console.error(err);
       }
     });
   };
+    // function to find all rides
+    const showAllRides = async () => {
+      try {
+        const response = await api.get('/rides');
+        const data = Array.isArray(response.data) ? response.data : response.data.data ?? [];
+        setRides(data);
+        setIsNearbyMode(false);
+      } catch (err) {}
+    };
+    
   
   
   
@@ -660,7 +674,7 @@ useEffect(() => {
 
 {isAuthenticated && currentTab === 'home' && (
   <>
-    <HeroBanner onFindNearby={findNearbyRides} />
+    <HeroBanner onFindNearby={findNearbyRides} isNearbyMode={isNearbyMode} onShowAll={showAllRides} />
     <RideFilters activeType={rideTypeFilter} setActiveType={setRideTypeFilter} />
     {filteredRides.length === 0 ? (
       <div className="container px-4 mt-5">
@@ -678,6 +692,7 @@ useEffect(() => {
           isJoined={joinedRideIds.includes(ride.id)}
           onToggleJoin={toggleJoinRide}
           onOpenDetails={(r) => setSelectedRide(r)}
+          currentUserId={user.id}
         />
       ))
     )}
@@ -944,15 +959,26 @@ useEffect(() => {
               </div>
               <div className="is-flex" style={{ gap: '8px' }}>
                 {Number(selectedRide?.organizer?.id) === Number(user?.id) ? (
-                  <button className="button is-danger" onClick={async () => {
-                    try {
-                      await api.delete(`/rides/${selectedRide.id}`);
-                      setRides(prev => prev.filter(r => r.id !== selectedRide.id));
-                      setSelectedRide(null);
-                    } catch (err) {}
-                  }}>
-                    Delete Ride
-                  </button>
+                  <>
+                    <button className="button" onClick={async () => {
+                      try {
+                        const response = await api.get(`/rides/${selectedRide.id}/requests`);
+                        setRideRequests(response.data);
+                        setShowRideRequests(true);
+                      } catch (err) {}
+                    }}>
+                      View Requests
+                    </button>
+                    <button className="button is-danger" onClick={async () => {
+                      try {
+                        await api.delete(`/rides/${selectedRide.id}`);
+                        setRides(prev => prev.filter(r => r.id !== selectedRide.id));
+                        setSelectedRide(null);
+                      } catch (err) {}
+                    }}>
+                      Delete Ride
+                    </button>
+                  </>
                 ) : (
                   <button className="button rr-btn-green" onClick={() => toggleJoinRide(selectedRide)}>
                     {joinedRideIds.includes(selectedRide.id) ? 'Leave Ride' : 'Join Ride'}
@@ -963,6 +989,7 @@ useEffect(() => {
           ) : null
         }
         
+        
       >
         {selectedRide && (
           <div>
@@ -972,7 +999,7 @@ useEffect(() => {
               </div>
             </div>
             <p className="has-text-grey-dark mb-3" style={{ lineHeight: 1.6 }}>
-            Organized by <span className="has-text-weight-semibold">{selectedRide.organizer?.name ?? selectedRide.organizer}</span>
+            Organized by <span className="has-text-weight-semibold">{selectedRide.club?.name ?? ''}</span>
             </p>
             <div className="rr-card" style={{ background: '#F8F9FA', border: 'none' }}>
               <div className="is-flex is-justify-content-space-between mb-2">
@@ -1291,7 +1318,14 @@ useEffect(() => {
   </div>
   <div className="mb-4">
     <label className="settings-label">Fee ($)</label>
-    <input className="settings-input" type="number" value={createRideForm.fee} onChange={(e) => setCreateRideForm(prev => ({ ...prev, fee: e.target.value }))} />
+    <input 
+  className="settings-input" 
+  type="number" 
+  value={createRideForm.fee}
+  onChange={(e) => setCreateRideForm(prev => ({ ...prev, fee: e.target.value }))}
+  onWheel={(e) => e.target.blur()}
+/>
+
   </div>
   <div className="mb-4">
     <label className="settings-label">Date & Time</label>
@@ -1302,6 +1336,40 @@ useEffect(() => {
     <input className="settings-input" type="number" value={createRideForm.duration} onChange={(e) => setCreateRideForm(prev => ({ ...prev, duration: e.target.value }))} />
   </div>
 </Modal>
+<Modal
+  isOpen={showRideRequests}
+  title="Join Requests"
+  onClose={() => setShowRideRequests(false)}
+>
+  {rideRequests.length === 0 ? (
+    <p className="has-text-grey has-text-centered py-4">No requests yet</p>
+  ) : (
+    rideRequests.map((req) => (
+      <div key={req.id} className="is-flex is-justify-content-space-between is-align-items-center mb-3 p-3" style={{ background: '#F8F9FA', borderRadius: '12px' }}>
+        <span className="has-text-weight-bold">{req.name}</span>
+        <div className="is-flex" style={{ gap: '8px' }}>
+          <button className="button is-small rr-btn-green" onClick={async () => {
+            try {
+              await api.post(`/rides/${selectedRide.id}/accept/${req.id}`);
+              setRideRequests(prev => prev.filter(r => r.id !== req.id));
+            } catch (err) {}
+          }}>
+            Accept
+          </button>
+          <button className="button is-small is-danger" onClick={async () => {
+            try {
+              await api.post(`/rides/${selectedRide.id}/reject/${req.id}`);
+              setRideRequests(prev => prev.filter(r => r.id !== req.id));
+            } catch (err) {}
+          }}>
+            Reject
+          </button>
+        </div>
+      </div>
+    ))
+  )}
+</Modal>
+
 
     </Layout>
   );

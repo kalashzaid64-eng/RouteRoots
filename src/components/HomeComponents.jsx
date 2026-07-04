@@ -10,7 +10,7 @@ const SkateIcon = ({ size = 22, color = 'currentColor' }) => (
   </svg>
 );
 
-export const HeroBanner = ({ onFindNearby }) => (
+export const HeroBanner = ({ onFindNearby, isNearbyMode, onShowAll }) => (
   <div className="container px-4 mt-4">
     <div className="rr-hero">
       <div className="rr-badge-brown mb-3">
@@ -22,10 +22,20 @@ export const HeroBanner = ({ onFindNearby }) => (
       <p className="subtitle is-6 has-text-white mb-5" style={{ opacity: 0.9, lineHeight: 1.5 }}>
         Join local rides, connect with clubs, and track your journey with RouteRoots.
       </p>
-      <button className="button is-large rr-btn-brown" onClick={() => onFindNearby?.()}>
-  <MapPin size={20} /> Find Rides Near Me
-</button>
-
+      <div className="is-flex" style={{ gap: '10px' }}>
+        <button className="button is-large rr-btn-brown" onClick={() => onFindNearby?.()}>
+          <MapPin size={20} /> Find Rides Near Me
+        </button>
+        {isNearbyMode && (
+  <button 
+    className="button rr-pill" 
+    style={{ borderRadius: '100px', fontWeight: 600, background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.5)' }} 
+    onClick={() => onShowAll?.()}
+  >
+    Show All
+  </button>
+)}
+      </div>
     </div>
   </div>
 );
@@ -82,8 +92,8 @@ export const RideFilters = ({ activeType = 'all', setActiveType }) => {
   );
 };
 
-export const RideCard = ({ ride, onOpenDetails, onToggleJoin, isJoined = false }) => {
- const type = ride.activity_type 
+export const RideCard = ({ ride, onOpenDetails, onToggleJoin, isJoined = false, currentUserId }) => {
+  const type = ride.activity_type 
   ? ride.activity_type.charAt(0).toUpperCase() + ride.activity_type.slice(1).toLowerCase()
   : ride.type ?? '';
 
@@ -114,7 +124,7 @@ const icon =
             </div>
             <div>
               <h3 className="title is-5 mb-1" style={{ fontWeight: 700,  color: 'var(--text-dark)',margin:'5px' }}>{ride.title}</h3>
-              <p className="subtitle is-7 has-text-grey mb-0">{ride.organizer?.name ?? ride.organizer}</p>
+              <p className="subtitle is-7 has-text-grey mb-0">{ride.club?.name ?? ''}</p>
             </div>
           </div>
           <div className={`rr-activity-badge ${badgeClass}`}>
@@ -161,13 +171,19 @@ const icon =
                 Details <ChevronRight size={18} />
               </span>
             </button>
-            {!isPast ? (
-  <button className="button rr-btn-green" onClick={() => onToggleJoin?.(ride)} style={isJoined ? { opacity: 0.85 } : {}}>
-    {isJoined ? 'Joined' : 'Join'}
+            {Number(ride.organizer?.id) !== Number(currentUserId) && !isPast ? (
+  <button 
+    className="button rr-btn-green" 
+    onClick={() => onToggleJoin?.(ride)} 
+    style={isJoined ? { opacity: 0.85 } : {}}
+  >
+    {isJoined ? 'Request Sent' : 'Join'}
   </button>
-) : (
+) : isPast ? (
   <span className="has-text-grey" style={{ fontWeight: 600, fontSize: '0.9rem' }}>Ended</span>
-)}
+) : null}
+
+
 
           </div>
         </div>
