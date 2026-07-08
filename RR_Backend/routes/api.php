@@ -42,9 +42,11 @@ Route::middleware('auth:api')->group(function () {
     // Follow
     Route::post('/users/{id}/follow', [FollowController::class, 'follow']);
     Route::post('/users/{id}/unfollow', [FollowController::class, 'unfollow']);
+    Route::get('/users/search', [FollowController::class, 'search']);
     Route::get('/users/{id}', [FollowController::class, 'show']);
     Route::get('/users/{id}/followers', [FollowController::class, 'followers']);
     Route::get('/users/{id}/following', [FollowController::class, 'following']);
+
 
     // Products
     Route::get('/products', [ProductController::class, 'index']);

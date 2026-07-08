@@ -27,6 +27,9 @@ class FollowController extends Controller
 
         $target->followers()->attach($userId);
 
+        \App\Services\AchievementService::check($userId);
+        \App\Services\AchievementService::check($id);
+
         NotificationService::send($id, 'new_follower', [
             'follower_id' => $userId,
             'follower_name' => auth()->user()->name,
@@ -47,6 +50,7 @@ class FollowController extends Controller
     }
 
     // صفحة بروفايل شخص معين
+    // صفحة بروفايل شخص معين
     public function show($id)
     {
         $user = User::findOrFail($id);
@@ -62,6 +66,8 @@ class FollowController extends Controller
             'followers_count' => $user->followers()->count(),
             'following_count' => $user->following()->count(),
             'is_following' => $user->followers()->where('follower_id', $currentUserId)->exists(),
+            'achievements' => $user->achievements()->get(['id', 'title', 'description', 'created_at']),
+            'activity_log' => $user->activities()->orderBy('date', 'desc')->get(['id', 'type', 'distance', 'duration', 'date']),
         ]);
     }
 
@@ -78,4 +84,21 @@ class FollowController extends Controller
         $user = User::findOrFail($id);
         return response()->json($user->following()->get(['users.id', 'name', 'avatar', 'bio']));
     }
+
+        // بحث عن مستخدم بالاسم
+    public function search(Request $request)
+    {
+        $request->validate([
+            'q' => 'required|string|min:1',
+        ]);
+
+        $currentUserId = auth()->id();
+
+        $users = User::where('id', '!=', $currentUserId)
+            ->where('name', 'like', '%' . $request->q . '%')
+            ->get(['id', 'name', 'avatar', 'bio', 'activities']);
+
+        return response()->json($users);
+    }
+
 }

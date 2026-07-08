@@ -96,11 +96,22 @@ class ClubController extends Controller
         
         \App\Services\AchievementService::check(auth()->id());
 
+        // إشعار للمتابعين إنو صديقهم انضم لنادي
+        $user = auth()->user();
+        foreach ($user->followers as $follower) {
+            NotificationService::send($follower->id, 'friend_joined_club', [
+                'friend_id' => $user->id,
+                'friend_name' => $user->name,
+                'club_id' => $club->id,
+                'club_name' => $club->name,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Joined club successfully',
         ]);
     }
+
     public function leave($id)
     {
         $club = Club::findOrFail($id);

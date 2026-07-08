@@ -41,11 +41,15 @@ class ProfileController extends Controller
         $totalRides = $user->joinedRides()->count();
         $totalDistance = $user->activities()->sum('distance');
         $totalDuration = $user->activities()->sum('duration');
+        $followersCount = $user->followers()->count();
+        $followingCount = $user->following()->count();
 
         return response()->json([
             'total_rides' => $totalRides,
             'total_distance' => $totalDistance,
             'total_duration' => $totalDuration,
+            'followers_count' => $followersCount,
+            'following_count' => $followingCount,
         ]);
     }
 }

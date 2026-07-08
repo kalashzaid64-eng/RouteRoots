@@ -54,6 +54,18 @@ class AchievementService
         if ($totalDistance >= 100) {
             self::give($userId, 'Road Warrior', 'Covered 100km total across all activities!');
         }
+
+        // Made a Friend - أول متابعة (following)
+        $followingCount = $user->following()->count();
+        if ($followingCount >= 1) {
+            self::give($userId, 'Made a Friend', 'Followed your first friend!');
+        }
+
+        // Popular - 5 متابعين
+        $followersCount = $user->followers()->count();
+        if ($followersCount >= 5) {
+            self::give($userId, 'Popular', 'Gained 5 followers!');
+        }
     }
 
     private static function give($userId, $title, $description)
