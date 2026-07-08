@@ -4,6 +4,7 @@ use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClubController;
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +38,13 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('clubs', ClubController::class);
     Route::post('/clubs/{id}/join', [ClubController::class, 'join']);
     Route::post('/clubs/{id}/leave', [ClubController::class, 'leave']);
+
+    // Follow
+    Route::post('/users/{id}/follow', [FollowController::class, 'follow']);
+    Route::post('/users/{id}/unfollow', [FollowController::class, 'unfollow']);
+    Route::get('/users/{id}', [FollowController::class, 'show']);
+    Route::get('/users/{id}/followers', [FollowController::class, 'followers']);
+    Route::get('/users/{id}/following', [FollowController::class, 'following']);
 
     // Products
     Route::get('/products', [ProductController::class, 'index']);
