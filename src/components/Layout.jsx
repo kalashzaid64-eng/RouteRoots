@@ -78,12 +78,40 @@ const Layout = ({ children, currentTab, setCurrentTab, hideBottomNav = false, un
                 padding: '1rem',
                 borderBottom: '1px solid #F0F0F0',
                 background: n.is_read == true || n.is_read === 1 ? 'white' : '#E8F5E9',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px'
               }} onClick={() => onMarkAsRead?.(n.id)}>
-                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{n.data?.title ?? n.type}</p>
-                <p style={{ color: '#757575', fontSize: '0.8rem' }}>{n.data?.joined_by ?? ''}</p>
+                <div style={{
+                  width: '36px', height: '36px',
+                  borderRadius: '50%',
+                  background: 'var(--primary-green)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <span style={{ fontSize: '1rem' }}>
+                    {n.type === 'ride_joined' ? '🚴' : 
+                     n.type === 'club_joined' ? '🏛️' : 
+                     n.type === 'achievement_unlocked' ? '🏆' : '🔔'}
+                  </span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '2px' }}>
+                    {n.type === 'ride_joined' ? `${n.data?.joined_by} joined your ride` :
+                     n.type === 'club_joined' ? `${n.data?.joined_by} joined your club` :
+                     n.data?.title ?? n.type}
+                  </p>
+                  <p style={{ color: '#757575', fontSize: '0.75rem' }}>
+                    {n.data?.title ?? ''}
+                  </p>
+                  <p style={{ color: '#BDBDBD', fontSize: '0.7rem', marginTop: '4px' }}>
+                    {new Date(n.created_at).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
             ))
+            
           )}
         </div>
       )}

@@ -242,7 +242,13 @@ function App() {
     duration: '',
   });
   const [isCreatingRide, setIsCreatingRide] = useState(false);
-  
+  const [viewedUserProfile, setViewedUserProfile] = useState(null);
+  const [isLoadingUserProfile, setIsLoadingUserProfile] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [followListModal, setFollowListModal] = useState(null); // { type: 'followers'|'following', userId, list 
   const [profileStats, setProfileStats] = useState({
     total_rides: 0,
     total_distance: '0',
@@ -393,6 +399,23 @@ useEffect(() => {
     fetchNotifications();
   }
 }, [isAuthenticated]);
+useEffect(() => {
+  if (!isAuthenticated) return;
+  
+  const interval = setInterval(async () => {
+    try {
+      const response = await api.get('/rides');
+      const data = Array.isArray(response.data) ? response.data : response.data.data ?? [];
+      setRides(data);
+      const joinedIds = data.filter(r => r.is_joined).map(r => r.id);
+      setJoinedRideIds(joinedIds);
+    } catch (err) {}
+  }, 10000);
+
+  return () => clearInterval(interval);
+}, [isAuthenticated]);
+
+
 
 
 
@@ -498,6 +521,63 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
       console.error(err);
     }
   };
+  const openUserProfile = async (userId) => {
+    setIsLoadingUserProfile(true);
+    try {
+      const response = await api.get(`/users/${userId}`);
+      setViewedUserProfile(response.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingUserProfile(false);
+    }
+  };
+  const searchUsers = async (query) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const response = await api.get(`/users/search?q=${encodeURIComponent(query)}`);
+      setSearchResults(response.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+  
+  const openFollowList = async (type, userId) => {
+    try {
+      const response = await api.get(`/users/${userId}/${type}`);
+      setFollowListModal({ type, userId, list: response.data });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
+  const toggleFollowUser = async () => {
+    if (!viewedUserProfile) return;
+    const wasFollowing = viewedUserProfile.is_following;
+    try {
+      if (wasFollowing) {
+        await api.post(`/users/${viewedUserProfile.id}/unfollow`);
+      } else {
+        await api.post(`/users/${viewedUserProfile.id}/follow`);
+      }
+      setViewedUserProfile((prev) => ({
+        ...prev,
+        is_following: !wasFollowing,
+        followers_count: wasFollowing ? prev.followers_count - 1 : prev.followers_count + 1,
+      }));
+      const statsResponse = await api.get('/profile/stats');
+      setProfileStats(statsResponse.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   
 
   const toggleJoinClub = async (club) => {
@@ -535,11 +615,6 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
         setIsNearbyMode(false);
       } catch (err) {}
     };
-    
-  
-  
-  
-
   const addToCart = (product) => {
     if (!product?.id) return;
     setCartItems((prev) => {
@@ -729,6 +804,30 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
   
   
 />
+<div className="is-flex is-align-items-center is-justify-content-center" style={{ gap: '32px', padding: '16px 0' }}>
+            <div
+              className="has-text-centered"
+              style={{ cursor: 'pointer' }}
+              onClick={() => openFollowList('followers', user.id)}
+            >
+              <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{profileStats.followers_count ?? 0}</div>
+              <div className="has-text-grey is-size-7">Followers</div>
+            </div>
+            <div
+              className="has-text-centered"
+              style={{ cursor: 'pointer' }}
+              onClick={() => openFollowList('following', user.id)}
+            >
+              <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{profileStats.following_count ?? 0}</div>
+              <div className="has-text-grey is-size-7">Following</div>
+            </div>
+          </div>
+
+          <div className="has-text-centered" style={{ paddingBottom: '16px' }}>
+            <button className="button rr-btn-green" onClick={() => setIsSearchOpen(true)}>
+              Add Friend
+            </button>
+          </div>
 
           <ProfileStats stats={profileStats} />
           <AchievementsSection achievements={achievements} />
@@ -1369,12 +1468,227 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
     ))
   )}
 </Modal>
+<UserProfileOverlay
+  profile={viewedUserProfile}
+  isLoading={isLoadingUserProfile}
+  onClose={() => setViewedUserProfile(null)}
+  onToggleFollow={toggleFollowUser}
+/>
+<SearchUsersModal
+        isOpen={isSearchOpen}
+        query={searchQuery}
+        onQueryChange={searchUsers}
+        results={searchResults}
+        isSearching={isSearching}
+        onClose={() => { setIsSearchOpen(false); setSearchQuery(''); setSearchResults([]); }}
+        onSelectUser={(id) => { setIsSearchOpen(false); setSearchQuery(''); setSearchResults([]); openUserProfile(id); }}
+      />
 
+      <FollowListModal
+        data={followListModal}
+        onClose={() => setFollowListModal(null)}
+        onSelectUser={(id) => { setFollowListModal(null); openUserProfile(id); }}
+      />
 
     </Layout>
   );
 }
+const SearchUsersModal = ({ isOpen, query, onQueryChange, results, isSearching, onClose, onSelectUser }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="modal is-active" style={{ zIndex: 1000 }}>
+      <div className="modal-background" onClick={onClose}></div>
+      <div className="modal-card" style={{ borderRadius: '16px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '480px' }}>
+        <header className="modal-card-head" style={{ borderBottom: '1px solid #EEE' }}>
+          <p className="modal-card-title" style={{ fontWeight: 800 }}>Add Friend</p>
+          <button className="delete" aria-label="close" onClick={onClose}></button>
+        </header>
+        <section className="modal-card-body" style={{ background: 'white', overflowY: 'auto', flex: 1 }}>
+          <input
+            className="settings-input mb-4"
+            type="text"
+            placeholder="Search by name..."
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            autoFocus
+          />
+          {isSearching ? (
+            <p className="has-text-grey has-text-centered py-4">Searching...</p>
+          ) : results.length === 0 ? (
+            query.trim() ? (
+              <p className="has-text-grey has-text-centered py-4">No users found</p>
+            ) : null
+          ) : (
+            results.map((u) => (
+              <div
+                key={u.id}
+                className="is-flex is-align-items-center mb-2 p-3"
+                style={{ background: '#F8F9FA', borderRadius: '12px', cursor: 'pointer', gap: '12px' }}
+                onClick={() => onSelectUser(u.id)}
+              >
+                <div
+                  style={{
+                    width: '44px', height: '44px', borderRadius: '50%',
+                    background: '#E8E8E8', overflow: 'hidden',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 700, color: '#999', flexShrink: 0,
+                  }}
+                >
+                  {u.avatar ? (
+                    <img src={u.avatar} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    u.name?.charAt(0)?.toUpperCase()
+                  )}
+                </div>
+                <div>
+                  <div className="has-text-weight-bold is-size-7">{u.name}</div>
+                  {u.bio && <div className="has-text-grey is-size-7">{u.bio}</div>}
+                </div>
+              </div>
+            ))
+          )}
+        </section>
+      </div>
+    </div>
+  );
+};
 
+const FollowListModal = ({ data, onClose, onSelectUser }) => {
+  if (!data) return null;
+  const title = data.type === 'followers' ? 'Followers' : 'Following';
+  return (
+    <div className="modal is-active" style={{ zIndex: 1000 }}>
+      <div className="modal-background" onClick={onClose}></div>
+      <div className="modal-card" style={{ borderRadius: '16px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '480px' }}>
+        <header className="modal-card-head" style={{ borderBottom: '1px solid #EEE' }}>
+          <p className="modal-card-title" style={{ fontWeight: 800 }}>{title}</p>
+          <button className="delete" aria-label="close" onClick={onClose}></button>
+        </header>
+        <section className="modal-card-body" style={{ background: 'white', overflowY: 'auto', flex: 1 }}>
+          {data.list.length === 0 ? (
+            <p className="has-text-grey has-text-centered py-4">Nobody here yet</p>
+          ) : (
+            data.list.map((u) => (
+              <div
+                key={u.id}
+                className="is-flex is-align-items-center mb-2 p-3"
+                style={{ background: '#F8F9FA', borderRadius: '12px', cursor: 'pointer', gap: '12px' }}
+                onClick={() => onSelectUser(u.id)}
+              >
+                <div
+                  style={{
+                    width: '44px', height: '44px', borderRadius: '50%',
+                    background: '#E8E8E8', overflow: 'hidden',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 700, color: '#999', flexShrink: 0,
+                  }}
+                >
+                  {u.avatar ? (
+                    <img src={u.avatar} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    u.name?.charAt(0)?.toUpperCase()
+                  )}
+                </div>
+                <div>
+                  <div className="has-text-weight-bold is-size-7">{u.name}</div>
+                  {u.bio && <div className="has-text-grey is-size-7">{u.bio}</div>}
+                </div>
+              </div>
+            ))
+          )}
+        </section>
+      </div>
+    </div>
+  );
+};
+const UserProfileOverlay = ({ profile, isLoading, onClose, onToggleFollow }) => {
+  if (!isLoading && !profile) return null;
+
+  return (
+    <div className="modal is-active" style={{ zIndex: 1000 }}>
+      <div className="modal-background" onClick={onClose}></div>
+      <div
+        className="modal-card"
+        style={{ borderRadius: '16px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '480px' }}
+      >
+        <header className="modal-card-head" style={{ borderBottom: '1px solid #EEE' }}>
+          <p className="modal-card-title" style={{ fontWeight: 800 }}>Profile</p>
+          <button className="delete" aria-label="close" onClick={onClose}></button>
+        </header>
+        <section className="modal-card-body" style={{ background: 'white', overflowY: 'auto', flex: 1 }}>
+          {isLoading ? (
+            <p className="has-text-grey has-text-centered py-6">Loading...</p>
+          ) : (
+            <>
+              <div className="is-flex is-flex-direction-column is-align-items-center py-4">
+                <div
+                  style={{
+                    width: '80px', height: '80px', borderRadius: '50%',
+                    background: '#F0F0F0', overflow: 'hidden',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '2rem', fontWeight: 700, color: '#999',
+                  }}
+                >
+                  {profile.avatar ? (
+                    <img src={profile.avatar} alt={profile.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    profile.name?.charAt(0)?.toUpperCase()
+                  )}
+                </div>
+                <h3 className="mt-3" style={{ fontWeight: 800, fontSize: '1.3rem' }}>{profile.name}</h3>
+                {profile.location && <p className="has-text-grey is-size-7">{profile.location}</p>}
+                {profile.bio && <p className="has-text-centered mt-2" style={{ fontSize: '0.9rem' }}>{profile.bio}</p>}
+
+                <div className="is-flex mt-4" style={{ gap: '32px' }}>
+                  <div className="has-text-centered">
+                    <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{profile.followers_count}</div>
+                    <div className="has-text-grey is-size-7">Followers</div>
+                  </div>
+                  <div className="has-text-centered">
+                    <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{profile.following_count}</div>
+                    <div className="has-text-grey is-size-7">Following</div>
+                  </div>
+                </div>
+
+                <button
+                  className="button rr-btn-green mt-4"
+                  style={profile.is_following ? { opacity: 0.85 } : {}}
+                  onClick={onToggleFollow}
+                >
+                  {profile.is_following ? 'Following' : 'Follow'}
+                </button>
+              </div>
+
+              {profile.achievements?.length > 0 && (
+                <div className="mt-4">
+                  <h4 style={{ fontWeight: 700, marginBottom: '10px' }}>Achievements</h4>
+                  {profile.achievements.map((a) => (
+                    <div key={a.id} className="p-3 mb-2" style={{ background: '#F8F9FA', borderRadius: '12px' }}>
+                      <div className="has-text-weight-bold is-size-7">{a.title}</div>
+                      <div className="has-text-grey is-size-7">{a.description}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {profile.activity_log?.length > 0 && (
+                <div className="mt-4">
+                <h4 style={{ fontWeight: 700, marginBottom: '10px' }}>Recent Activity</h4>
+                {profile.activity_log.map((act) => (
+                  <div key={act.id} className="p-3 mb-2" style={{ background: '#F8F9FA', borderRadius: '12px' }}>
+                    <div className="has-text-weight-bold is-size-7">{act.type} — {act.distance} km</div>
+                    <div className="has-text-grey is-size-7">{act.date}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+    </div>
+  </div>
+);
+};
 const Modal = ({ isOpen, title, onClose, children, footer }) => {
   if (!isOpen) return null;
   return (
