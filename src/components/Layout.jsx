@@ -92,15 +92,21 @@ const Layout = ({ children, currentTab, setCurrentTab, hideBottomNav = false, un
                 }}>
                   <span style={{ fontSize: '1rem' }}>
                     {n.type === 'ride_joined' ? '🚴' : 
-                     n.type === 'club_joined' ? '🏛️' : 
-                     n.type === 'achievement_unlocked' ? '🏆' : '🔔'}
+                      n.type === 'club_joined' ? '🏛️' : 
+                      n.type === 'achievement_unlocked' ? '🏆' :
+                      n.type === 'new_follower' ? '👤' :
+                      n.type === 'friend_joined_club' ? '🏛' :
+                      n.type === 'friend_joined_ride' ? '🚴' : '🔔'}
                   </span>
                 </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '2px' }}>
                     {n.type === 'ride_joined' ? `${n.data?.joined_by} joined your ride` :
-                     n.type === 'club_joined' ? `${n.data?.joined_by} joined your club` :
-                     n.data?.title ?? n.type}
+                      n.type === 'club_joined' ? `${n.data?.joined_by} joined your club` :
+                      n.type === 'new_follower' ? `${n.data?.follower_name} started following you` :
+                      n.type === 'friend_joined_club' ? `${n.data?.friend_name} joined ${n.data?.club_name}` :
+                      n.type === 'friend_joined_ride' ? `${n.data?.friend_name} joined ${n.data?.ride_title}` :
+                      n.data?.title ?? n.type}
                   </p>
                   <p style={{ color: '#757575', fontSize: '0.75rem' }}>
                     {n.data?.title ?? ''}
