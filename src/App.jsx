@@ -793,6 +793,7 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
           'Content-Type': 'multipart/form-data'
         }
       });
+      
       const meResponse = await api.get('/me');
       setUser((prev) => ({ ...prev, avatar: meResponse.data.avatar }));
     } catch (err) {
@@ -800,34 +801,15 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
     }
   }}
   
-  
+  followersCount={profileStats.followers_count ?? 0}
+  followingCount={profileStats.following_count ?? 0}
+  onOpenFollowers={() => openFollowList('followers', user.id)}
+  onOpenFollowing={() => openFollowList('following', user.id)}
+  onAddFriend={() => setIsSearchOpen(true)}
   
   
 />
-<div className="is-flex is-align-items-center is-justify-content-center" style={{ gap: '32px', padding: '16px 0' }}>
-            <div
-              className="has-text-centered"
-              style={{ cursor: 'pointer' }}
-              onClick={() => openFollowList('followers', user.id)}
-            >
-              <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{profileStats.followers_count ?? 0}</div>
-              <div className="has-text-grey is-size-7">Followers</div>
-            </div>
-            <div
-              className="has-text-centered"
-              style={{ cursor: 'pointer' }}
-              onClick={() => openFollowList('following', user.id)}
-            >
-              <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{profileStats.following_count ?? 0}</div>
-              <div className="has-text-grey is-size-7">Following</div>
-            </div>
-          </div>
 
-          <div className="has-text-centered" style={{ paddingBottom: '16px' }}>
-            <button className="button rr-btn-green" onClick={() => setIsSearchOpen(true)}>
-              Add Friend
-            </button>
-          </div>
 
           <ProfileStats stats={profileStats} />
           <AchievementsSection achievements={achievements} />

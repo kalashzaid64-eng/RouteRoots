@@ -10,7 +10,7 @@ const SkateIcon = ({ size = 20, color = 'currentColor' }) => (
   </svg>
 );
 
-export const ProfileHeader = ({ user, onEditProfile, selectedActivities = [] , onAvatarChange }) => {
+export const ProfileHeader = ({ user, onEditProfile, selectedActivities = [], onAvatarChange, followersCount = 0, followingCount = 0, onOpenFollowers, onOpenFollowing, onAddFriend }) => {
   const initials =
     user?.name
       ? user.name
@@ -21,66 +21,135 @@ export const ProfileHeader = ({ user, onEditProfile, selectedActivities = [] , o
           .join('')
       : 'JD';
 
+  const activityMeta = {
+    Running: { icon: '🏃', active: selectedActivities.includes('Running') },
+    Cycling: { icon: '🚴', active: selectedActivities.includes('Cycling') },
+    Skating: { icon: '🛼', active: selectedActivities.includes('Skating') },
+  };
+  const activeActivities = Object.entries(activityMeta).filter(([, v]) => v.active);
   return (
     <div className="profile-header-container">
       <div className="profile-bg-gradient"></div>
       <div className="profile-avatar-wrapper">
-  <div className="profile-avatar">
-    {user?.avatar 
-      ? <img src={user.avatar} style={{ width: '100%', height: '100%', borderRadius: '24px', objectFit: 'cover' }} />
-      : initials
-    }
-  </div>
-  <label style={{ 
-    position: 'absolute', 
-    bottom: '-8px', 
-    right: '-8px',
-    background: 'var(--primary-green)', 
-    borderRadius: '50%',
-    width: '28px',
-    height: '28px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    border: '2px solid white'
-  }}>
-    <input 
-      type="file" 
-      accept="image/*" 
-      style={{ display: 'none' }}
-      onChange={(e) => onAvatarChange?.(e.target.files[0])}
-    />
-    <Edit3 size={14} color="white" />
-  </label>
-</div>
+        <div className="profile-avatar">
+          {user?.avatar
+            ? <img src={user.avatar} style={{ width: '100%', height: '100%', borderRadius: '24px', objectFit: 'cover' }} />
+            : initials
+          }
+        </div>
+        <label style={{
+          position: 'absolute',
+          bottom: '-8px',
+          right: '-8px',
+          background: 'var(--primary-green)',
+          borderRadius: '50%',
+          width: '28px',
+          height: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          border: '2px solid white'
+        }}>
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={(e) => onAvatarChange?.(e.target.files[0])}
+          />
+          <Edit3 size={14} color="white" />
+        </label>
+      </div>
 
       <div className="container px-5">
-        <div className="is-flex is-justify-content-between is-align-items-start mb-4">
+        <div className="is-flex is-justify-content-between is-align-items-start mb-2">
           <div>
-            <h1 className="title is-3 mb-1" style={{ fontWeight: 800,color:'black' }}>{user?.name ?? 'John Doe'}</h1>
+            <h1 className="title is-3 mb-1" style={{ fontWeight: 800, color: 'black' }}>{user?.name ?? 'John Doe'}</h1>
             <div className="is-flex is-align-items-center gap-1 has-text-grey" style={{ fontSize: '0.95rem' }}>
               <MapPin size={16} /> {user?.location ?? 'San Francisco, CA'}
             </div>
           </div>
-          <button className="edit-profile-btn" onClick={() => onEditProfile?.()}>
-            <Edit3 size={18} /> Edit Profile
+          <button
+            onClick={() => onEditProfile?.()}
+            title="Edit Profile"
+            style={{
+              background: '#F5F5F5',
+              border: 'none',
+              borderRadius: '50%',
+              width: '38px',
+              height: '38px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <Edit3 size={16} color="#555" />
           </button>
         </div>
-        <p className="subtitle is-6 has-text-grey-darker mb-0" style={{ lineHeight: 1.6, maxWidth: '90%' }}>
+
+        <p className="subtitle is-6 has-text-grey-darker mb-3" style={{ lineHeight: 1.6, maxWidth: '90%' }}>
           {user?.bio ?? 'Passionate runner, cyclist, and skater. Love exploring new trails and connecting with fellow athletes. Member since 2024.'}
         </p>
 
-        <div className="is-flex is-align-items-center mt-4" style={{ gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-          <span className={`rr-pill ${selectedActivities.includes('Running') ? 'is-active-running' : ''}`} style={{ cursor: 'default' }}>Running</span>
-          <span className={`rr-pill ${selectedActivities.includes('Cycling') ? 'is-active-cycling' : ''}`} style={{ cursor: 'default' }}>Cycling</span>
-          <span className={`rr-pill ${selectedActivities.includes('Skating') ? 'is-active-skating' : ''}`} style={{ cursor: 'default' }}>Skating</span>
+        {activeActivities.length > 0 && (
+          <div className="is-flex is-align-items-center has-text-grey-darker mb-4" style={{ gap: '6px', fontSize: '0.9rem', fontWeight: 500 }}>
+            {activeActivities.map(([name, meta], i) => (
+              <React.Fragment key={name}>
+                {i > 0 && <span style={{ color: '#CCC' }}>·</span>}
+                <span>{meta.icon} {name}</span>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+
+<div style={{ borderTop: '1px solid #F0F0F0', marginTop: '16px', paddingTop: '18px' }}>
+          <div className="is-flex is-align-items-center is-justify-content-center mb-4" style={{ gap: '0' }}>
+            <div
+              className="has-text-centered"
+              style={{ cursor: 'pointer', padding: '0 28px', borderRight: '1px solid #EEE' }}
+              onClick={() => onOpenFollowers?.()}
+            >
+              <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--text-dark)', lineHeight: 1.2 }}>{followersCount}</div>
+              <div className="has-text-grey" style={{ fontSize: '0.78rem' }}>Followers</div>
+            </div>
+            <div
+              className="has-text-centered"
+              style={{ cursor: 'pointer', padding: '0 28px' }}
+              onClick={() => onOpenFollowing?.()}
+            >
+              <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--text-dark)', lineHeight: 1.2 }}>{followingCount}</div>
+              <div className="has-text-grey" style={{ fontSize: '0.78rem' }}>Following</div>
+            </div>
+          </div>
+          <button
+            onClick={() => onAddFriend?.()}
+            style={{
+              width: '100%',
+              maxWidth: '360px',
+              display: 'flex',
+              margin: '0 auto',
+              background: 'var(--primary-green)',
+              border: 'none',
+              color: 'white',
+              borderRadius: '14px',
+              padding: '12px',
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+            }}
+          >
+            + Add Friend
+          </button>
         </div>
       </div>
     </div>
   );
 };
-
 export const ProfileStats = ({ stats }) => (
   <div className="container px-4 mt-5">
     <div className="columns is-mobile is-multiline is-variable is-3">
