@@ -6,7 +6,7 @@ import { HeroBanner, RideFilters, RideCard } from './components/HomeComponents';
 import { ProfileHeader, ProfileStats, AchievementsSection, RecentActivitySection } from './components/ProfileComponents';
 import { ClubsHeader, ClubCard } from './components/ClubsComponents';
 import { MarketHeader, MarketBanner, ProductCard } from './components/MarketComponents';
-import { NotificationSettings, PreferencesSettings, SecuritySettings, SupportSettings } from './components/SettingsComponents';
+import { NotificationSettings,  SecuritySettings, SupportSettings } from './components/SettingsComponents';
 import Login from './components/Login';
 import Register from './components/Register';
 import api from './api/axios';
@@ -249,6 +249,11 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [followListModal, setFollowListModal] = useState(null); // { type: 'followers'|'following', userId, list 
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current_password: '', new_password: '', new_password_confirmation: '' });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+
   const [profileStats, setProfileStats] = useState({
     total_rides: 0,
     total_distance: '0',
@@ -532,6 +537,21 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
       setIsLoadingUserProfile(false);
     }
   };
+  const changePassword = async () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+    try {
+      await api.post('/change-password', passwordForm);
+      setPasswordSuccess('Password changed successfully');
+      setPasswordForm({ current_password: '', new_password: '', new_password_confirmation: '' });
+      setTimeout(() => setIsChangePasswordOpen(false), 1500);
+    } catch (err) {
+      const data = err.response?.data;
+      const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
+      setPasswordError(firstError || data?.message || 'Failed to update password');
+    }
+  };
+  
   const searchUsers = async (query) => {
     setSearchQuery(query);
     if (!query.trim()) {
@@ -1000,8 +1020,7 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
       {isAuthenticated && currentTab === 'settings' && (
         <div className="pb-6">
           <NotificationSettings />
-          <PreferencesSettings />
-          <SecuritySettings />
+          <SecuritySettings onChangePassword={() => setIsChangePasswordOpen(true)} />
           {/* <SupportSettings /> */}
           <SupportSettings onLogout={async () => {
   try {
@@ -1471,6 +1490,47 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
         onClose={() => setFollowListModal(null)}
         onSelectUser={(id) => { setFollowListModal(null); openUserProfile(id); }}
       />
+      <Modal
+  isOpen={isChangePasswordOpen}
+  title="Change Password"
+  onClose={() => { setIsChangePasswordOpen(false); setPasswordError(''); setPasswordSuccess(''); setPasswordForm({ current_password: '', new_password: '', new_password_confirmation: '' }); }}
+>
+  <div className="mb-4">
+    <label className="has-text-weight-bold is-size-7 mb-1" style={{ display: 'block' }}>Current Password</label>
+    <input
+      type="password"
+      className="settings-input"
+      value={passwordForm.current_password}
+      onChange={(e) => setPasswordForm(prev => ({ ...prev, current_password: e.target.value }))}
+    />
+  </div>
+  <div className="mb-4">
+    <label className="has-text-weight-bold is-size-7 mb-1" style={{ display: 'block' }}>New Password</label>
+    <input
+      type="password"
+      className="settings-input"
+      value={passwordForm.new_password}
+      onChange={(e) => setPasswordForm(prev => ({ ...prev, new_password: e.target.value }))}
+    />
+  </div>
+  <div className="mb-4">
+    <label className="has-text-weight-bold is-size-7 mb-1" style={{ display: 'block' }}>Confirm New Password</label>
+    <input
+      type="password"
+      className="settings-input"
+      value={passwordForm.new_password_confirmation}
+      onChange={(e) => setPasswordForm(prev => ({ ...prev, new_password_confirmation: e.target.value }))}
+    />
+  </div>
+
+  {passwordError && <p className="has-text-danger is-size-7 mb-3">{passwordError}</p>}
+  {passwordSuccess && <p className="has-text-success is-size-7 mb-3">{passwordSuccess}</p>}
+
+  <button className="button rr-btn-green" style={{ width: '100%' }} onClick={changePassword}>
+    Update Password
+  </button>
+</Modal>
+
 
     </Layout>
   );
