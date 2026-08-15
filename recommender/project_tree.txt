@@ -1,0 +1,14 @@
+Folder PATH listing
+Volume serial number is 00000174 8E1D:0638
+C:.
+    app.py
+    encoders.pkl
+    generate_data.py
+    model.pkl
+    project_tree.txt
+    scaler.pkl
+    training_data.csv
+    train_model.py
+    
+No subfolders exist 
+

@@ -1,0 +1,41 @@
+Folder PATH listing
+Volume serial number is 000001A1 8E1D:0638
+C:.
+³   .gitignore
+³   database.sqlite
+³   project_tree.txt
+³   
+ÃÄÄÄfactories
+³       UserFactory.php
+³       
+ÃÄÄÄmigrations
+³       0001_01_01_000000_create_users_table.php
+³       0001_01_01_000001_create_cache_table.php
+³       0001_01_01_000002_create_jobs_table.php
+³       2026_05_18_230105_create_rides_table.php
+³       2026_05_18_230816_create_clubs_table.php
+³       2026_05_18_231106_create_products_table.php
+³       2026_05_18_231408_create_achievements_table.php
+³       2026_05_18_231539_create_activities_table.php
+³       2026_05_18_231705_create_club_user_table.php
+³       2026_05_18_231828_create_ride_user_table.php
+³       2026_05_21_230123_create_personal_access_tokens_table.php
+³       2026_06_11_204509_add_duration_to_rides_table.php
+³       2026_06_11_204657_add_fields_to_clubs_table.php
+³       2026_06_11_204847_add_location_to_rides_table.php
+³       2026_06_12_201053_add_recommendation_fields_to_products_table.php
+³       2026_06_20_055510_create_notifications_table.php
+³       2026_06_25_211041_add_club_id_to_rides_table.php
+³       2026_06_27_044257_add_location_coords_to_users_table.php
+³       2026_07_03_211745_add_status_to_ride_user_table.php
+³       2026_07_08_225400_create_follows_table.php
+³       
+ÀÄÄÄseeders
+        AchievementSeeder.php
+        ActivitySeeder.php
+        ClubSeeder.php
+        DatabaseSeeder.php
+        ProductSeeder.php
+        RideSeeder.php
+        UserSeeder.php
+        
