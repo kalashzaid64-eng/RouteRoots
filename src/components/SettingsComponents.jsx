@@ -40,71 +40,23 @@ export const NotificationSettings = () => (
   </div>
 );
 
-export const PreferencesSettings = () => (
-  <div className="container px-4">
-    <div className="settings-section">
-      <div className="is-flex is-align-items-center gap-3 mb-4">
-        <Globe size={20} className="has-text-grey" />
-        <h3 className="title is-5 mb-0" style={{ fontWeight: 700 }}>Preferences</h3>
-      </div>
-      <p className="has-text-grey mb-5" style={{ fontSize: '0.9rem' }}>
-        Customize your app experience.
-      </p>
-
-      <div className="is-flex is-align-items-center is-justify-content-space-between">
-        <h5 className="has-text-weight-bold mb-0">Distance unit</h5>
-        <div className="is-flex is-align-items-center gap-2 has-text-grey" style={{ cursor: 'pointer' }}>
-          <span>Kilometers</span>
-          <ChevronRight size={18} />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-export const SecuritySettings = () => (
+export const SecuritySettings = ({ onChangePassword }) => (
   <div className="container px-4">
     <div className="mb-5">
-      {[
-        'Change Password',
-        'Two-Factor Authentication',
-        'Privacy Settings',
-        'Download My Data'
-      ].map((item, i) => (
-        <button key={i} className="settings-list-btn">
-          <span>{item}</span>
-          <ChevronRight size={20} />
-        </button>
-      ))}
+      <button className="settings-list-btn" onClick={onChangePassword}>
+        <span>Change Password</span>
+        <ChevronRight size={20} />
+      </button>
     </div>
   </div>
 );
+
 
 export const SupportSettings = ({onLogout}) => (
   <div className="container px-4">
-    <div className="settings-section">
-      <div className="is-flex is-align-items-center gap-3 mb-4">
-        <HelpCircle size={20} className="has-text-grey" />
-        <h3 className="title is-5 mb-0" style={{ fontWeight: 700 }}>Help & Support</h3>
-      </div>
-
-      <div className="mb-0">
-        {[
-          'Help Center',
-          'Contact Support',
-          'Terms of Service',
-          'Privacy Policy'
-        ].map((item, i) => (
-          <button key={i} className="settings-list-btn" style={{ border: '1px solid #E0E0E0', color: '#444' }}>
-            <span>{item}</span>
-            <ChevronRight size={20} className="has-text-grey" />
-          </button>
-        ))}
-      </div>
-    </div>
-
     <button className="logout-btn mb-6" onClick={onLogout}>
       <LogOut size={20} /> Log Out
     </button>
   </div>
 );
+
