@@ -33,7 +33,7 @@ export const MarketBanner = ({ recommendations = [] }) => (
 );
 
 
-export const MarketHeader = ({ activeCategory, setActiveCategory, onOpenCart, cartCount = 0, searchValue = '', onSearch }) => {
+export const MarketHeader = ({ activeCategory, setActiveCategory, searchValue = '', onSearch }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const categories = [
@@ -88,20 +88,13 @@ export const MarketHeader = ({ activeCategory, setActiveCategory, onOpenCart, ca
             </div>
           </div>
         </div>
-        <div className="column is-6">
-          <div className="cart-badge-wrapper">
-            <button className="market-action-btn" onClick={() => onOpenCart?.()}>
-              <ShoppingCart size={18} /> Cart
-            </button>
-            {cartCount > 0 && <div className="cart-item-count">{cartCount}</div>}
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
-export const ProductCard = ({ product, onOpenDetails, onAddToCart }) => {
+const WHATSAPP_ADMIN_NUMBER = '963953516218'; 
+export const ProductCard = ({ product, onOpenDetails }) => {
   const getCategoryClass = (cat) => {
     switch(cat.toLowerCase()) {
       case 'footwear': return 'cat-footwear';
@@ -149,10 +142,13 @@ export const ProductCard = ({ product, onOpenDetails, onAddToCart }) => {
               style={{ borderRadius: '12px' }}
               onClick={(e) => {
                 e.stopPropagation();
-                onAddToCart?.(product);
+                const message = encodeURIComponent(
+                  `Hi! I'm interested in "${product.name}" ($${product.price}). Is it available?`
+                );
+                window.open(`https://wa.me/${WHATSAPP_ADMIN_NUMBER}?text=${message}`, '_blank');
               }}
             >
-              Add to Cart
+              Order via WhatsApp
             </button>
           </div>
         </div>
