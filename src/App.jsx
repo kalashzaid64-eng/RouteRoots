@@ -222,6 +222,7 @@ const MOCK_PRODUCTS = [
 ];
 
 function App() {
+  const WHATSAPP_ADMIN_NUMBER = '963953516218';
   const [authPage, setAuthPage] = useState('login');
   const [rides, setRides] = useState([]);
   const [currentTab, setCurrentTab] = useState('home');
@@ -444,12 +445,10 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
   const [showRideRequests, setShowRideRequests] = useState(false);
   const [selectedClub, setSelectedClub] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
 
   const [joinedRideIds, setJoinedRideIds] = useState([]);
   const [joinedClubIds, setJoinedClubIds] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
 
   const filteredProducts = useMemo(() => {
     let result = marketCategory === 'all' 
@@ -507,10 +506,6 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
   }, [clubTypeFilter, clubsData, joinedClubIds]);
   
   
-
-  const cartCount = useMemo(() => {
-    return cartItems.reduce((sum, item) => sum + item.qty, 0);
-  }, [cartItems]);
 
   const toggleJoinRide = async (ride) => {
     if (!ride?.id) return;
@@ -635,33 +630,7 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
         setIsNearbyMode(false);
       } catch (err) {}
     };
-  const addToCart = (product) => {
-    if (!product?.id) return;
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i.productId === product.id);
-      if (!existing) return [...prev, { productId: product.id, qty: 1 }];
-      return prev.map((i) => (i.productId === product.id ? { ...i, qty: i.qty + 1 } : i));
-    });
-  };
-
-  const updateCartQty = (productId, nextQty) => {
-    setCartItems((prev) => {
-      if (nextQty <= 0) return prev.filter((i) => i.productId !== productId);
-      return prev.map((i) => (i.productId === productId ? { ...i, qty: nextQty } : i));
-    });
-  };
-
-  const cartLines = useMemo(() => {
-    return cartItems
-      .map((item) => {
-        const product = MOCK_PRODUCTS.find((p) => p.id === item.productId);
-        if (!product) return null;
-        return { product, qty: item.qty, lineTotal: item.qty * product.price };
-      })
-      .filter(Boolean);
-  }, [cartItems]);
-
-  const cartTotal = useMemo(() => cartLines.reduce((sum, l) => sum + l.lineTotal, 0), [cartLines]);
+  
 
   return (
     <Layout 
@@ -1000,18 +969,16 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
             onSearch={setProductSearch}          
             activeCategory={marketCategory}
             setActiveCategory={setMarketCategory}
-            onOpenCart={() => setIsCartOpen(true)}
-            cartCount={cartCount}
           />
           <MarketBanner recommendations={recommendations} />
           <div className="pb-6">
             {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onOpenDetails={(p) => setSelectedProduct(p)}
-                onAddToCart={addToCart}
-              />
+            <ProductCard
+              key={product.id}
+              product={product}
+              onOpenDetails={(p) => setSelectedProduct(p)}
+            />
+          
             ))}
           </div>
         </>
@@ -1207,14 +1174,17 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
             <div className="is-flex is-justify-content-space-between is-align-items-center" style={{ width: '100%', gap: '12px' }}>
               <div className="has-text-weight-bold" style={{ color: 'var(--primary-green)' }}>${selectedProduct.price}</div>
               <button
-                className="button rr-btn-green"
-                onClick={() => {
-                  addToCart(selectedProduct);
-                  setIsCartOpen(true);
-                }}
-              >
-                Add to Cart
-              </button>
+  className="button rr-btn-green"
+  onClick={() => {
+    const message = encodeURIComponent(
+      `Hi! I'm interested in "${selectedProduct?.name}" ($${selectedProduct?.price}). Is it available?`
+    );
+    window.open(`https://wa.me/${WHATSAPP_ADMIN_NUMBER}?text=${message}`, '_blank');
+  }}
+>
+  Order via WhatsApp
+</button>
+
             </div>
           ) : null
         }
@@ -1243,55 +1213,7 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
         )}
       </Modal>
 
-      <Modal
-        isOpen={isCartOpen}
-        title="Cart"
-        onClose={() => setIsCartOpen(false)}
-        footer={
-          <div className="is-flex is-justify-content-space-between is-align-items-center" style={{ width: '100%', gap: '12px' }}>
-            <div className="has-text-weight-bold" style={{ color: 'var(--primary-green)' }}>${cartTotal}</div>
-            <button className="button rr-btn-green" disabled={cartLines.length === 0} style={cartLines.length === 0 ? { opacity: 0.6 } : {}}>
-              Checkout
-            </button>
-          </div>
-        }
-      >
-        {cartLines.length === 0 && (
-          <p className="has-text-grey" style={{ lineHeight: 1.6 }}>
-            Your cart is empty. Add products from the Market.
-          </p>
-        )}
-        {cartLines.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {cartLines.map((line) => (
-              <div key={line.product.id} className="rr-card" style={{ background: '#F8F9FA', border: 'none' }}>
-                <div className="is-flex is-justify-content-space-between is-align-items-start">
-                  <div style={{ maxWidth: '65%' }}>
-                    <div className="has-text-weight-bold">{line.product.name}</div>
-                    <div className="has-text-grey is-size-7 mt-1">{line.product.category}</div>
-                  </div>
-                  <div className="has-text-weight-bold" style={{ color: 'var(--primary-green)' }}>${line.lineTotal}</div>
-                </div>
-
-                <div className="is-flex is-justify-content-space-between is-align-items-center mt-4">
-                  <div className="is-flex is-align-items-center" style={{ gap: '10px' }}>
-                    <button className="button" style={{ borderRadius: '10px', fontWeight: 700 }} onClick={() => updateCartQty(line.product.id, line.qty - 1)}>
-                      -
-                    </button>
-                    <span className="has-text-weight-bold">{line.qty}</span>
-                    <button className="button" style={{ borderRadius: '10px', fontWeight: 700 }} onClick={() => updateCartQty(line.product.id, line.qty + 1)}>
-                      +
-                    </button>
-                  </div>
-                  <button className="button" style={{ borderRadius: '10px', fontWeight: 700 }} onClick={() => updateCartQty(line.product.id, 0)}>
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Modal>
+      
 
       <Modal
         isOpen={isProfileEditOpen}

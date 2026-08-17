@@ -6,9 +6,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RideController;
+use App\Http\Controllers\ProductReviewController;
 use Illuminate\Support\Facades\Route;
 
 // بدون token
@@ -54,6 +56,11 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/products/recommendations', [ProductController::class, 'recommend']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/products', [ProductController::class, 'store']);
+    Route::get('/products/{id}/reviews', [ProductReviewController::class, 'index']);
+    Route::post('/products/{id}/reviews', [ProductReviewController::class, 'store']);
+    Route::delete('/products/{id}/reviews', [ProductReviewController::class, 'destroy']);
+
+
     
 
     // Activities
@@ -68,4 +75,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notification-settings', [NotificationSettingsController::class, 'index']);
+    Route::put('/notification-settings', [NotificationSettingsController::class, 'update']);
+
 });

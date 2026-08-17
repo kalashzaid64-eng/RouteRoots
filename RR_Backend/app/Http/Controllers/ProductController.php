@@ -8,11 +8,21 @@ use Illuminate\Support\Facades\Http;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        $products = Product::all();
-        return response()->json($products);
-    }
+        public function index()
+        {
+            $products = Product::withCount('reviews')
+                ->withAvg('reviews', 'rating')
+                ->get()
+                ->map(function ($product) {
+                    $product->rating = $product->reviews_avg_rating ? round($product->reviews_avg_rating, 1) : 0;
+                    $product->reviews_count = $product->reviews_count;
+                    unset($product->reviews_avg_rating);
+                    return $product;
+                });
+
+            return response()->json($products);
+        }
+
 
     public function store(Request $request)
     {

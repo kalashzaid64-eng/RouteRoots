@@ -28,6 +28,7 @@ class User extends Authenticatable implements \PHPOpenSourceSaver\JWTAuth\Contra
         'avatar',
         'latitude',
         'longitude',
+        'notification_settings',
     ];
 
     /**
@@ -50,6 +51,7 @@ class User extends Authenticatable implements \PHPOpenSourceSaver\JWTAuth\Contra
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notification_settings' => 'array',
         ];
     }
         public function getJWTIdentifier()
@@ -100,5 +102,11 @@ class User extends Authenticatable implements \PHPOpenSourceSaver\JWTAuth\Contra
     public function followers()
     {
         return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')->withTimestamps();
+    }
+
+    public function wantsNotification($type)
+    {
+        $settings = $this->notification_settings ?? [];
+        return $settings[$type] ?? true;
     }
 }
