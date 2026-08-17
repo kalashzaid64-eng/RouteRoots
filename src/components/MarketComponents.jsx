@@ -59,32 +59,30 @@ export const MarketHeader = ({ activeCategory, setActiveCategory, searchValue = 
 
       </div>
 
-      <div className="columns is-mobile is-variable is-2 mb-4">
-        <div className="column is-6">
-          <div className={`dropdown ${isFilterOpen ? 'is-active' : ''}`} style={{ width: '100%' }}>
-            <div className="dropdown-trigger" style={{ width: '100%' }}>
-              <button className="market-action-btn" onClick={() => setIsFilterOpen((v) => !v)}>
-                <Sliders size={18} /> {currentLabel}
-              </button>
-            </div>
-            <div className="dropdown-menu" role="menu" style={{ width: '100%' }}>
-              <div className="dropdown-content">
-                {categories.map((cat) => (
-                  <a
-                    key={cat.id}
-                    href="#"
-                    className={`dropdown-item ${activeCategory === cat.id ? 'is-active' : ''}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setActiveCategory?.(cat.id);
-                      setIsFilterOpen(false);
-                    }}
-                    style={{ fontWeight: activeCategory === cat.id ? 700 : 600 }}
-                  >
-                    {cat.name}
-                  </a>
-                ))}
-              </div>
+      <div className="mb-4">
+        <div className={`dropdown ${isFilterOpen ? 'is-active' : ''}`} style={{ width: '100%' }}>
+          <div className="dropdown-trigger" style={{ width: '100%' }}>
+            <button className="market-action-btn" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setIsFilterOpen((v) => !v)}>
+              <Sliders size={18} /> {currentLabel}
+            </button>
+          </div>
+          <div className="dropdown-menu" role="menu" style={{ width: '100%' }}>
+            <div className="dropdown-content">
+              {categories.map((cat) => (
+                <a
+                  key={cat.id}
+                  href="#"
+                  className={`dropdown-item ${activeCategory === cat.id ? 'is-active' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveCategory?.(cat.id);
+                    setIsFilterOpen(false);
+                  }}
+                  style={{ fontWeight: activeCategory === cat.id ? 700 : 600 }}
+                >
+                  {cat.name}
+                </a>
+              ))}
             </div>
           </div>
         </div>
