@@ -8,11 +8,21 @@ use Illuminate\Support\Facades\Http;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        $products = Product::all();
-        return response()->json($products);
-    }
+        public function index()
+        {
+            $products = Product::withCount('reviews')
+                ->withAvg('reviews', 'rating')
+                ->get()
+                ->map(function ($product) {
+                    $product->rating = $product->reviews_avg_rating ? round($product->reviews_avg_rating, 1) : 0;
+                    $product->reviews_count = $product->reviews_count;
+                    unset($product->reviews_avg_rating);
+                    return $product;
+                });
+
+            return response()->json($products);
+        }
+
 
     public function store(Request $request)
     {
@@ -42,7 +52,6 @@ class ProductController extends Controller
     public function recommend(Request $request)
     {
         $user = auth()->user();
-
         $products = Product::all()->map(function ($product) {
             return [
                 'id' => $product->id,
@@ -54,24 +63,18 @@ class ProductController extends Controller
                 'rating' => (float) $product->rating,
             ];
         });
-
         $payload = [
             'user_activity' => strtolower(trim(explode(',', $user->activities ?? 'running')[0])),
             'user_category_pref' => ucfirst(strtolower($request->get('category', 'Footwear'))),
             'products' => $products,
         ];
-
         $response = Http::post('http://127.0.0.1:5000/recommend', $payload);
-
         if ($response->failed()) {
             return response()->json(['error' => 'Recommendation service unavailable'], 503);
         }
-
         $recommendations = $response->json()['recommendations'];
-
         $recommendedIds = collect($recommendations)->pluck('product_id');
         $recommendedProducts = Product::whereIn('id', $recommendedIds)->get()->keyBy('id');
-
         $result = collect($recommendations)->map(function ($rec) use ($recommendedProducts) {
             $product = $recommendedProducts[$rec['product_id']];
             return [
@@ -79,7 +82,6 @@ class ProductController extends Controller
                 'score' => $rec['score'],
             ];
         });
-
         return response()->json(['recommendations' => $result]);
     }
 }

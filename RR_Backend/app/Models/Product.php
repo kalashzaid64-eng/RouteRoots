@@ -20,4 +20,10 @@ class Product extends Model
         'purchases',
         'rating',
     ];
+
+        public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
 }

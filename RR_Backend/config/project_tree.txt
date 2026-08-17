@@ -1,0 +1,20 @@
+Folder PATH listing
+Volume serial number is C0000100 8E1D:0638
+C:.
+    app.php
+    auth.php
+    cache.php
+    cors.php
+    database.php
+    filesystems.php
+    jwt.php
+    logging.php
+    mail.php
+    project_tree.txt
+    queue.php
+    sanctum.php
+    services.php
+    session.php
+    
+No subfolders exist 
+

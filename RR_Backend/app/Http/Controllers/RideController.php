@@ -251,7 +251,6 @@ class RideController extends Controller
             'ride_id' => $ride->id,
             'title' => $ride->title,
         ]);
-
         // إشعار للمتابعين إنو صديقهم انضم لـ ride
         $joinedUser = \App\Models\User::find($userId);
         foreach ($joinedUser->followers as $follower) {
@@ -262,7 +261,6 @@ class RideController extends Controller
                 'ride_title' => $ride->title,
             ]);
         }
-
         return response()->json(['message' => 'Request accepted successfully']);
     }
 
