@@ -254,6 +254,10 @@ function App() {
   const [passwordForm, setPasswordForm] = useState({ current_password: '', new_password: '', new_password_confirmation: '' });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [productReviews, setProductReviews] = useState([]);
+const [myRating, setMyRating] = useState(0);
+const [myComment, setMyComment] = useState('');
+
 
   const [profileStats, setProfileStats] = useState({
     total_rides: 0,
@@ -406,6 +410,11 @@ useEffect(() => {
   }
 }, [isAuthenticated]);
 useEffect(() => {
+  if (isAuthenticated) {
+    fetchNotificationSettings();
+  }
+}, [isAuthenticated]);
+useEffect(() => {
   if (!isAuthenticated) return;
   
   const interval = setInterval(async () => {
@@ -546,6 +555,42 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
       setPasswordError(firstError || data?.message || 'Failed to update password');
     }
   };
+  const fetchProductReviews = async (productId) => {
+    try {
+      const response = await api.get(`/products/${productId}/reviews`);
+      setProductReviews(response.data);
+      const mine = response.data.find(r => Number(r.user.id) === Number(user.id));
+      setMyRating(mine?.rating ?? 0);
+      setMyComment(mine?.comment ?? '');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
+  const submitReview = async (productId) => {
+    try {
+      await api.post(`/products/${productId}/reviews`, { rating: myRating, comment: myComment });
+      await fetchProductReviews(productId);
+      const productsResponse = await api.get('/products');
+      setProducts(productsResponse.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
+  const deleteReview = async (productId) => {
+    try {
+      await api.delete(`/products/${productId}/reviews`);
+      setMyRating(0);
+      setMyComment('');
+      await fetchProductReviews(productId);
+      const productsResponse = await api.get('/products');
+      setProducts(productsResponse.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
   
   const searchUsers = async (query) => {
     setSearchQuery(query);
@@ -621,6 +666,28 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
       }
     });
   };
+  const [notificationSettings, setNotificationSettings] = useState({});
+
+const fetchNotificationSettings = async () => {
+  try {
+    const response = await api.get('/notification-settings');
+    setNotificationSettings(response.data);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const toggleNotificationSetting = async (key) => {
+  const newValue = !notificationSettings[key];
+  setNotificationSettings((prev) => ({ ...prev, [key]: newValue }));
+  try {
+    await api.put('/notification-settings', { settings: { [key]: newValue } });
+  } catch (err) {
+    console.error(err);
+    setNotificationSettings((prev) => ({ ...prev, [key]: !newValue })); // ترجع القيمة القديمة لو فشل
+  }
+};
+
     // function to find all rides
     const showAllRides = async () => {
       try {
@@ -976,7 +1043,7 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
             <ProductCard
               key={product.id}
               product={product}
-              onOpenDetails={(p) => setSelectedProduct(p)}
+              onOpenDetails={(p) => { setSelectedProduct(p); fetchProductReviews(p.id); }}
             />
           
             ))}
@@ -986,7 +1053,7 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
 
       {isAuthenticated && currentTab === 'settings' && (
         <div className="pb-6">
-          <NotificationSettings />
+          <NotificationSettings settings={notificationSettings} onToggle={toggleNotificationSetting} />
           <SecuritySettings onChangePassword={() => setIsChangePasswordOpen(true)} />
           {/* <SupportSettings /> */}
           <SupportSettings onLogout={async () => {
@@ -1209,6 +1276,55 @@ const [isNearbyMode, setIsNearbyMode] = useState(false);
                 </div>
               </div>
             )}
+
+            <div style={{ borderTop: '1px solid #F0F0F0', marginTop: '20px', paddingTop: '16px' }}>
+              <h4 style={{ fontWeight: 700, marginBottom: '10px' }}>Your Rating</h4>
+              <StarRatingInput value={myRating} onChange={setMyRating} />
+              <textarea
+                className="settings-input mt-3"
+                placeholder="Write a comment (optional)"
+                value={myComment}
+                onChange={(e) => setMyComment(e.target.value)}
+                rows={2}
+                style={{ width: '100%', resize: 'none' }}
+              />
+              <div className="is-flex mt-2" style={{ gap: '10px' }}>
+                <button
+                  className="button rr-btn-green is-small"
+                  disabled={myRating === 0}
+                  onClick={() => submitReview(selectedProduct.id)}
+                >
+                  Submit
+                </button>
+                {productReviews.some(r => Number(r.user.id) === Number(user.id)) && (
+                  <button
+                    className="button is-small is-danger"
+                    onClick={() => deleteReview(selectedProduct.id)}
+                  >
+                    Delete My Review
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div style={{ marginTop: '20px' }}>
+              <h4 style={{ fontWeight: 700, marginBottom: '10px' }}>
+                Reviews ({productReviews.length})
+              </h4>
+              {productReviews.length === 0 ? (
+                <p className="has-text-grey is-size-7">No reviews yet. Be the first!</p>
+              ) : (
+                productReviews.map((r) => (
+                  <div key={r.id} className="p-3 mb-2" style={{ background: '#F8F9FA', borderRadius: '12px' }}>
+                    <div className="is-flex is-justify-content-space-between is-align-items-center">
+                      <span className="has-text-weight-bold is-size-7">{r.user.name}</span>
+                      <span style={{ color: '#F59E0B', fontSize: '0.85rem' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                    </div>
+                    {r.comment && <p className="has-text-grey is-size-7 mt-1">{r.comment}</p>}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </Modal>
@@ -1653,6 +1769,20 @@ const UserProfileOverlay = ({ profile, isLoading, onClose, onToggleFollow }) => 
   </div>
 );
 };
+const StarRatingInput = ({ value, onChange }) => (
+  <div className="is-flex" style={{ gap: '4px' }}>
+    {[1, 2, 3, 4, 5].map((n) => (
+      <span
+        key={n}
+        onClick={() => onChange(n)}
+        style={{ cursor: 'pointer', fontSize: '1.6rem', color: n <= value ? '#F59E0B' : '#DDD' }}
+      >
+        ★
+      </span>
+    ))}
+  </div>
+);
+
 const Modal = ({ isOpen, title, onClose, children, footer }) => {
   if (!isOpen) return null;
   return (
