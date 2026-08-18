@@ -326,13 +326,15 @@ h1, h2, h3, h4, h5, h6, p {
 }
 
 .product-image-container {
-  height: 240px;
+  /* height: 490px; */
+  aspect-ratio: 1 / 1;
   background-color: #F0F0F0;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #DDD;
+  overflow: hidden;
 }
 
 .discount-tag {
