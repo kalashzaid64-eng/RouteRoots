@@ -172,13 +172,18 @@ const icon =
               </span>
             </button>
             {Number(ride.organizer?.id) !== Number(currentUserId) && !isPast ? (
-  <button 
-    className="button rr-btn-green" 
-    onClick={() => onToggleJoin?.(ride)} 
-    style={isJoined ? { opacity: 0.85 } : {}}
-  >
-    {ride.is_joined ? 'Joined' : isJoined ? 'Request Sent' : 'Join'}
-  </button>
+  ride.join_status === 'rejected' ? (
+    <span className="has-text-grey" style={{ fontWeight: 600, fontSize: '0.9rem' }}>Not Available</span>
+  ) : (
+    <button 
+      className="button rr-btn-green" 
+      onClick={() => ride.join_status === 'pending' ? null : onToggleJoin?.(ride)} 
+      disabled={ride.join_status === 'pending'}
+      style={ride.join_status === 'pending' ? { opacity: 0.85, cursor: 'not-allowed' } : {}}
+    >
+      {ride.join_status === 'accepted' ? 'Joined' : ride.join_status === 'pending' ? 'Request Sent' : 'Join'}
+    </button>
+  )
 ) : isPast ? (
   <span className="has-text-grey" style={{ fontWeight: 600, fontSize: '0.9rem' }}>Ended</span>
 ) : null}
