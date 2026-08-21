@@ -35,6 +35,6 @@ class Ride extends Model
 
     public function participants()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'ride_user')->withPivot('status')->withTimestamps();
     }
 }

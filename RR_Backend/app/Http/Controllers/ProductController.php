@@ -43,16 +43,24 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show($id)
-    {
-        $product = Product::findOrFail($id);
-        $product->increment('views');
-        return response()->json($product);
-    }
+        public function show($id)
+        {
+            $product = Product::withCount('reviews')
+                ->withAvg('reviews', 'rating')
+                ->findOrFail($id);
+
+            $product->increment('views');
+
+            $product->rating = $product->reviews_avg_rating ? round($product->reviews_avg_rating, 1) : 0;
+            unset($product->reviews_avg_rating);
+
+            return response()->json($product);
+        }
+
     public function recommend(Request $request)
     {
         $user = auth()->user();
-        $products = Product::all()->map(function ($product) {
+        $products = Product::withAvg('reviews', 'rating')->get()->map(function ($product) {
             return [
                 'id' => $product->id,
                 'category' => $product->category,
@@ -60,7 +68,8 @@ class ProductController extends Controller
                 'price' => (float) $product->price,
                 'views' => (int) $product->views,
                 'purchases' => (int) $product->purchases,
-                'rating' => (float) $product->rating,
+                'rating' => $product->reviews_avg_rating ? (float) round($product->reviews_avg_rating, 1) : 0,
+
             ];
         });
         $payload = [

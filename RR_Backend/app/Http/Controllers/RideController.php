@@ -23,10 +23,11 @@ class RideController extends Controller
         $userId = auth()->id();
 
         $rides = $rides->map(function ($ride) use ($userId) {
-            $ride->is_joined = $ride->participants()
-            ->where('user_id', $userId)
-            ->wherePivot('status', 'accepted')
-            ->exists();
+            $participant = $ride->participants()->where('user_id', $userId)->first();
+
+            $ride->join_status = $participant ? $participant->pivot->status : null;
+            $ride->is_joined = $ride->join_status === 'accepted';
+
             return $ride;
         });
 
